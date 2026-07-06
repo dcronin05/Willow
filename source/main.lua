@@ -63,7 +63,7 @@ function playdate.update()
     -- This function tells the Playdate engine to process movement, animations, 
     -- and collisions for all active sprites, and then draws them to the screen.
     gfx.sprite.update()
-    pd.timer.updateTimers()
+    playdate.timer.updateTimers()
     
     -- ==========================================
     -- CUSTOM RENDER OVERLAYS
