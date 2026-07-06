@@ -109,8 +109,8 @@ function Character:applyPhysics()
     end
     
     -- Pass 2: Automatic Stair-Stepping
-    -- If we hit a wall and are moving horizontally, try to step over it!
-    if hitWall and math.abs(self.xVelocity) > 0.1 then
+    -- If we hit a wall and are moving horizontally (and are on the ground!), try to step over it!
+    if hitWall and self.grounded and math.abs(self.xVelocity) > 0.1 then
         -- Reset to starting position to perform the step maneuver
         self:moveTo(startX, startY)
         
