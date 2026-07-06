@@ -4,46 +4,76 @@ local gfx = pd.graphics
 class('World').extends()
 
 function World:init(levelName)
-    -- Tell the LDtk library to load this specific room into memory
-    LDtk.load_level(levelName)
+    -- Natively parse the LDtk JSON file!
+    local ldtkData = json.decodeFile("levels/world.ldtk")
+    local levelData = nil
     
-    -- 1. BUILD THE TILEMAPS & COLLISIONS
-    for layer_name, layer in pairs(LDtk.get_layers(levelName)) do
-        if layer.tiles then
-            local tilemap = LDtk.create_tilemap(levelName, layer_name)
-            
-            local layerSprite = gfx.sprite.new()
-            layerSprite:setTilemap(tilemap)
-            layerSprite:moveTo(0, 0)
-            layerSprite:setCenter(0, 0)
-            layerSprite:setZIndex(layer.zIndex)
-            layerSprite:add()
-            
-            -- We assume any tile with the ID '1' is a solid wall
-            -- Playdate requires us to provide the IDs of the EMPTY tiles (everything else)
-            local emptyIDs = {}
-            for i=0, 255 do
-                if i ~= 1 then
-                    table.insert(emptyIDs, i)
-                end
-            end
-            
-            -- Generate the physics colliders for all the '1' tiles!
-            gfx.sprite.addWallSprites(tilemap, emptyIDs)
+    -- Find our specific room
+    for _, level in ipairs(ldtkData.levels) do
+        if level.identifier == levelName then
+            levelData = level
+            break
         end
     end
     
-    -- 2. SPAWN THE ENTITIES
-    for index, entity in ipairs(LDtk.get_entities(levelName)) do
-        if entity.name == "Player" then
-            _G.player = Player(entity.position.x, entity.position.y)
-        elseif entity.name == "Sign" then
-            local text = entity.fields.text or "..."
-            -- LDtk anchors are typically (0, 0) top-left, but we set our Sign to anchor (0.5, 1) bottom-center
-            -- LDtk outputs entity.position based on the entity's pivot in the editor.
-            -- In our generated LDtk, pivot is [0, 0] so it's the top-left.
-            -- We need to pass x + width/2, y + height to match our Sign's anchor
-            Sign(entity.position.x + 8, entity.position.y + 16, text)
+    if not levelData then print("Error: Level not found") return end
+    
+    local tilemap = gfx.tilemap.new()
+    local imageTable = gfx.imagetable.new("images/tileset")
+    tilemap:setImageTable(imageTable)
+    tilemap:setSize(25, 15)
+
+    -- Extract layers
+    for _, layer in ipairs(levelData.layerInstances) do
+        
+        -- 1. BUILD COLLISIONS FROM INTGRID
+        if layer.__identifier == "Collisions" then
+            local grid = layer.intGridCsv
+            
+            -- LDtk IntGrid values map 1-to-1 with our array!
+            -- We iterate through the LDtk CSV and populate our Playdate tilemap
+            for i = 1, #grid do
+                -- Playdate is 1-indexed, LDtk 1D arrays are 0-indexed math
+                -- Wait, lua loops are 1-indexed. We calculate x,y:
+                local x = ((i - 1) % 25) + 1
+                local y = math.floor((i - 1) / 25) + 1
+                
+                -- LDtk IntGrid value 0 means empty. Value 1 means Wall.
+                -- In our tileset.png, Tile 1 is the Wall, Tile 2 is Air.
+                local tileID = grid[i] == 1 and 1 or 2
+                tilemap:setTileAtPosition(x, y, tileID)
+            end
+            
+            local tilemapSprite = gfx.sprite.new()
+            tilemapSprite:setTilemap(tilemap)
+            tilemapSprite:moveTo(0, 0)
+            tilemapSprite:setCenter(0, 0)
+            tilemapSprite:setZIndex(-1)
+            tilemapSprite:add()
+            
+            -- Solid wall collisions: Tell Playdate that tile ID 2 is empty!
+            gfx.sprite.addWallSprites(tilemap, {2})
+            
+        -- 2. SPAWN ENTITIES
+        elseif layer.__identifier == "Entities" then
+            for _, entity in ipairs(layer.entityInstances) do
+                local pxX = entity.px[1]
+                local pxY = entity.px[2]
+                
+                if entity.__identifier == "Player" then
+                    _G.player = Player(pxX, pxY)
+                    
+                elseif entity.__identifier == "Sign" then
+                    local text = "..."
+                    for _, field in ipairs(entity.fieldInstances) do
+                        if field.__identifier == "text" then
+                            text = field.__value
+                        end
+                    end
+                    -- Adjust for sign anchoring
+                    Sign(pxX + 8, pxY + 16, text)
+                end
+            end
         end
     end
 end

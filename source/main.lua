@@ -2,7 +2,6 @@ import "CoreLibs/graphics"
 import "CoreLibs/sprites"
 import "CoreLibs/object"
 
-import "scripts/LDtk"
 import "scripts/World"
 import "scripts/Player"
 import "scripts/UIManager"
@@ -13,9 +12,6 @@ local gfx = playdate.graphics
 
 -- Setting the background color to white automatically clears the screen every frame for us!
 gfx.setBackgroundColor(gfx.kColorWhite)
-
--- Load LDtk project
-LDtk.load("levels/world.ldtk")
 
 -- Instantiate our world which builds the tilemaps and spawns the LDtk entities
 local world = World("Room_1")
