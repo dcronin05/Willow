@@ -107,6 +107,8 @@ ldtk_data = {
             "worldX": 0,
             "worldY": 0,
             "bgColor": "#ffffff",
+            "__neighbours": [],
+            "fieldInstances": [],
             "layerInstances": [
                 {
                     "__identifier": "Entities",
