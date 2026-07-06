@@ -142,12 +142,20 @@ function Player:update()
         
         local sprites = gfx.sprite.querySpritesInRect(visionX, self.y, visionWidth, 32)
         
+        local closestDist = math.huge
+        local bestInteractable = nil
+        
         for i=1, #sprites do
             if sprites[i].isInteractable then
-                self.currentInteractable = sprites[i]
-                break
+                local dist = math.abs(self.x - sprites[i].x)
+                if dist < closestDist then
+                    closestDist = dist
+                    bestInteractable = sprites[i]
+                end
             end
         end
+        
+        self.currentInteractable = bestInteractable
         
         -- Trigger Interaction
         if pd.buttonJustPressed(pd.kButtonA) and self.currentInteractable then

@@ -16,8 +16,9 @@ gfx.setBackgroundColor(gfx.kColorWhite)
 -- Instantiate our world (the floor) first
 local world = World()
 
--- Instantiate a test Sign
-local sign = Sign(250, 192, "Welcome to Willow!\nWatch your step.")
+-- Instantiate two test Signs right next to each other
+local sign1 = Sign(250, 192, "Sign 1: I am the left sign!")
+local sign2 = Sign(270, 192, "Sign 2: I am the right sign!")
 
 -- Instantiate our player in the center of the screen (make it global)
 _G.player = Player(200, 100)
