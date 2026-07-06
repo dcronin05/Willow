@@ -5,6 +5,7 @@
     "appVersion": "1.5.3"
   },
   "jsonVersion": "1.5.3",
+  "appBuildId": 473703,
   "worldLayout": "Free",
   "worldGridWidth": 400,
   "worldGridHeight": 240,
@@ -12,6 +13,12 @@
   "defaultLevelHeight": 240,
   "defaultGridSize": 16,
   "bgColor": "#ffffff",
+  "externalLevels": false,
+  "toc": [],
+  "flags": [],
+  "worlds": [],
+  "customCommands": [],
+  "dummyWorldIid": "dummy-world-iid",
   "defs": {
     "layers": [
       {
@@ -586,6 +593,5 @@
         }
       ]
     }
-  ],
-  "externalLevels": false
+  ]
 }

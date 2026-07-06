@@ -25,6 +25,11 @@ ldtk_data = {
     "defaultGridSize": 16,
     "bgColor": "#ffffff",
     "externalLevels": False,
+    "toc": [],
+    "flags": [],
+    "worlds": [],
+    "customCommands": [],
+    "dummyWorldIid": "dummy-world-iid",
     "defs": {
         "layers": [
             {
