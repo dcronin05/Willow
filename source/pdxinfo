@@ -2,5 +2,5 @@ name=Willow
 author=GrandpaPantz
 description=A sprawling side-scrolling Metroidvania RPG.
 bundleID=com.cronin.willow
-version=1.1.0
-buildNumber=6
+version=1.2.0
+buildNumber=10

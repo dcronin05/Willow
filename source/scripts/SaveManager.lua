@@ -29,6 +29,7 @@ SaveManager.state = {
     }
 }
 
+--- Loads the saved game state from Playdate datastore and merges it into memory.
 function SaveManager.loadGame()
     local savedData = pd.datastore.read("willow_save")
     if savedData then
@@ -50,6 +51,7 @@ function SaveManager.loadGame()
     end
 end
 
+--- Iterates through the game scene and serializes player and entity data into the datastore.
 function SaveManager.saveGame()
     if _G.player then
         SaveManager.state.player.x = _G.player.x
@@ -76,10 +78,15 @@ function SaveManager.saveGame()
     print("Game saved!")
 end
 
+--- Checks if there is a saved coordinate for the player to respawn at.
+---@return boolean
 function SaveManager.hasSavedPlayerPosition()
     return SaveManager.state.player.x ~= nil and SaveManager.state.player.y ~= nil
 end
 
+--- Retrieves the player's saved coordinates.
+---@return number x
+---@return number y
 function SaveManager.getSavedPlayerPosition()
     return SaveManager.state.player.x, SaveManager.state.player.y
 end
@@ -95,11 +102,14 @@ function SaveManager.setFlag(flagName, value)
 end
 
 --- Checks if a world flag is set
+---@param flagName string The flag to query.
+---@return boolean
 function SaveManager.getFlag(flagName)
     return SaveManager.state.world.flags[flagName]
 end
 
 --- Marks an entity as permanently killed
+---@param iid string The LDtk entity identifier.
 function SaveManager.setEntityKilled(iid)
     SaveManager.state.world.entities[iid] = SaveManager.state.world.entities[iid] or {}
     SaveManager.state.world.entities[iid].dead = true
@@ -107,6 +117,8 @@ function SaveManager.setEntityKilled(iid)
 end
 
 --- Checks if an entity is dead
+---@param iid string The LDtk entity identifier.
+---@return boolean
 function SaveManager.isEntityKilled(iid)
     if not SaveManager.state.world.entities[iid] then return false end
     return SaveManager.state.world.entities[iid].dead == true
