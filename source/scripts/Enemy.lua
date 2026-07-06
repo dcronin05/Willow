@@ -76,3 +76,14 @@ function Enemy:update()
     -- Allow the base NPC update to apply our velocities, gravity, and animations
     Enemy.super.update(self)
 end
+
+function Enemy:die()
+    -- Generate a unique ID for the dropped item using current time and random number
+    local uid = "drop_" .. pd.getCurrentTimeMilliseconds() .. "_" .. math.random(1000)
+    
+    -- Spawn a potion! (x, y, itemId, uid, isDropping=true)
+    Item(self.x, self.y, "potion", uid, true)
+    
+    -- Call the base class die to handle cleanup and SaveManager state
+    Enemy.super.die(self)
+end

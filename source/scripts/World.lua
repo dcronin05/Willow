@@ -157,8 +157,28 @@ function World:init(levelName)
                         
                         Enemy(pxX, pxY, entity.iid, savedHealth)
                     end
+                elseif entity.__identifier == "Item" then
+                    -- Items placed in LDtk
+                    if not SaveManager.isEntityKilled(entity.iid) then
+                        import "scripts/Item"
+                        local itemId = "potion" -- default
+                        for _, field in ipairs(entity.fieldInstances) do
+                            if field.__identifier == "itemId" then
+                                -- LDtk string fields often get typed with quotes by accident, strip them!
+                                itemId = string.gsub(field.__value, '^"(.*)"$', '%1')
+                            end
+                        end
+                        -- x + 8, y + 16 for bottom-center anchoring
+                        Item(pxX + 8, pxY + 16, itemId, entity.iid, false)
+                    end
                 end
             end
         end
+    end
+    
+    -- Now spawn any dynamic items that were dropped onto the ground previously
+    for uid, itemData in pairs(SaveManager.state.world.droppedItems) do
+        import "scripts/Item"
+        Item(itemData.x, itemData.y, itemData.itemId, uid, false)
     end
 end

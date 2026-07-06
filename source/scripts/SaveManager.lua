@@ -14,14 +14,15 @@ SaveManager.state = {
         xp = 0,
         level = 1
     },
-    inventory = {
-        items = {}, -- e.g. ["sword_1"] = { quantity = 1, equipped = true }
-        gold = 0
+    inventories = {
+        player = { items = {}, gold = 0 }
+        -- Other inventories like 'chest_1' or 'npc_bob' can be added dynamically!
     },
     world = {
         currentRoom = "Level_0",
         flags = {}, -- e.g. ["read_first_sign"] = true, ["chest_5_opened"] = true
-        entities = {} -- Tracks all NPCs/Enemies by LDtk iid (x, y, health, dead)
+        entities = {}, -- Tracks all NPCs/Enemies by LDtk iid (x, y, health, dead)
+        droppedItems = {} -- Tracks physical items on the floor: { [uid] = { itemId="potion", x=10, y=10 } }
     },
     quests = {
         active = {},
@@ -122,4 +123,63 @@ end
 function SaveManager.isEntityKilled(iid)
     if not SaveManager.state.world.entities[iid] then return false end
     return SaveManager.state.world.entities[iid].dead == true
+end
+
+-- ==========================================
+-- INVENTORY & ITEM HELPERS
+-- ==========================================
+
+--- Adds an item to a specific inventory
+---@param invName string The name of the inventory (e.g., "player")
+---@param itemId string The ID of the item
+---@param amount number (Optional) Amount to add, defaults to 1
+function SaveManager.addItem(invName, itemId, amount)
+    amount = amount or 1
+    SaveManager.state.inventories[invName] = SaveManager.state.inventories[invName] or { items = {}, gold = 0 }
+    
+    local items = SaveManager.state.inventories[invName].items
+    items[itemId] = (items[itemId] or 0) + amount
+    SaveManager.saveGame()
+end
+
+--- Removes an item from a specific inventory
+---@param invName string The name of the inventory (e.g., "player")
+---@param itemId string The ID of the item
+---@param amount number (Optional) Amount to remove, defaults to 1
+---@return boolean success True if successfully consumed
+function SaveManager.consumeItem(invName, itemId, amount)
+    amount = amount or 1
+    if not SaveManager.state.inventories[invName] then return false end
+    
+    local items = SaveManager.state.inventories[invName].items
+    if (items[itemId] or 0) >= amount then
+        items[itemId] = items[itemId] - amount
+        if items[itemId] <= 0 then
+            items[itemId] = nil
+        end
+        SaveManager.saveGame()
+        return true
+    end
+    return false
+end
+
+--- Registers a physical item dropped in the world
+---@param uid string Unique identifier for the dropped item instance
+---@param itemId string The ID of the item
+---@param x number X coordinate
+---@param y number Y coordinate
+function SaveManager.registerDroppedItem(uid, itemId, x, y)
+    SaveManager.state.world.droppedItems[uid] = {
+        itemId = itemId,
+        x = x,
+        y = y
+    }
+    SaveManager.saveGame()
+end
+
+--- Removes a dropped item from the world tracking (e.g., when picked up)
+---@param uid string Unique identifier
+function SaveManager.removeDroppedItem(uid)
+    SaveManager.state.world.droppedItems[uid] = nil
+    SaveManager.saveGame()
 end

@@ -54,21 +54,32 @@ function Player:update()
     -- ==========================================
     -- 1. INPUT HANDLING
     -- ==========================================
-    if pd.buttonIsPressed(pd.kButtonLeft) then
-        self.xVelocity = self.xVelocity - self.acceleration
-        self.facingRight = false
-    elseif pd.buttonIsPressed(pd.kButtonRight) then
-        self.xVelocity = self.xVelocity + self.acceleration
-        self.facingRight = true
+    if not UIManager.isUIActive() then
+        if pd.buttonIsPressed(pd.kButtonLeft) then
+            self.xVelocity = self.xVelocity - self.acceleration
+            self.facingRight = false
+        elseif pd.buttonIsPressed(pd.kButtonRight) then
+            self.xVelocity = self.xVelocity + self.acceleration
+            self.facingRight = true
+        else
+            self.xVelocity = self.xVelocity * self.friction
+        end
+        
+        if pd.buttonJustPressed(pd.kButtonUp) and self.grounded then
+            self.yVelocity = self.jumpForce
+        end
+        
+        if pd.buttonJustPressed(pd.kButtonB) then
+            if UIManager.showInventory then
+                UIManager.showInventory()
+            end
+        end
     else
+        -- If UI is active, force the player to slide to a stop.
         self.xVelocity = self.xVelocity * self.friction
     end
     
     self.xVelocity = math.max(-self.maxSpeed, math.min(self.maxSpeed, self.xVelocity))
-    
-    if pd.buttonJustPressed(pd.kButtonUp) and self.grounded then
-        self.yVelocity = self.jumpForce
-    end
     
     -- ==========================================
     -- 2. PHYSICS (Via Base Class)
@@ -95,7 +106,8 @@ function Player:update()
             visionX = self.x - 32
         end
         
-        local sprites = gfx.sprite.querySpritesInRect(visionX, self.y, visionWidth, 32)
+        -- Shift Y up by 32 so we scan the player's body height, not underground!
+        local sprites = gfx.sprite.querySpritesInRect(visionX, self.y - 32, visionWidth, 32)
         local closestDist = math.huge
         local bestInteractable = nil
         
@@ -109,11 +121,20 @@ function Player:update()
             end
         end
         
-        if bestInteractable then
-            self.currentInteractable = bestInteractable
-            
-            if pd.buttonJustPressed(pd.kButtonA) then
+        self.currentInteractable = bestInteractable
+        
+        -- Press A to Interact or Attack!
+        if pd.buttonJustPressed(pd.kButtonA) then
+            if self.currentInteractable then
                 self.currentInteractable:onInteract()
+            else
+                -- DEBUG: Attack nearest enemy in front of us
+                for i=1, #sprites do
+                    if sprites[i].className == "Enemy" then
+                        sprites[i]:takeDamage(50, self.x)
+                        break
+                    end
+                end
             end
         end
     end

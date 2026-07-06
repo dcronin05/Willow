@@ -28,6 +28,20 @@ function UIManager.isUIActive()
     return UIManager.activeUI ~= nil
 end
 
+--- Closes the currently active UI
+function UIManager.clearUI()
+    if UIManager.activeUI then
+        UIManager.activeUI:remove()
+        UIManager.activeUI = nil
+    end
+end
+
+--- Opens the Inventory Menu
+function UIManager.showInventory()
+    if UIManager.activeUI then return end
+    UIManager.activeUI = InventoryUI()
+end
+
 --- Draws persistent Heads-Up Display elements (like the Health Bar) directly to the screen.
 function UIManager.drawHUD()
     if not _G.player then return end

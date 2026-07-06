@@ -16,6 +16,9 @@ import "scripts/UIManager"
 import "scripts/MessageBox"
 import "scripts/Sign"
 import "scripts/SaveManager"
+import "scripts/ItemDatabase"
+import "scripts/InventoryUI"
+import "scripts/Item"
 
 -- Cache the graphics API for performance
 local gfx = playdate.graphics
