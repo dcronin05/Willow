@@ -10,6 +10,7 @@ SaveManager.state = {
     player = {
         x = nil,
         y = nil,
+        health = nil,
         xp = 0,
         level = 1
     },
@@ -53,6 +54,7 @@ function SaveManager.saveGame()
     if _G.player then
         SaveManager.state.player.x = _G.player.x
         SaveManager.state.player.y = _G.player.y
+        SaveManager.state.player.health = _G.player.health
     end
     
     -- Dynamically save the state of any entity that has an iid

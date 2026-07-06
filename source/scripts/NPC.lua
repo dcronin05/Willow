@@ -9,6 +9,12 @@ import "scripts/Character"
 
 class('NPC').extends(Character)
 
+--- Initializes a new NPC instance.
+---@param x number The starting X position in pixels.
+---@param y number The starting Y position in pixels.
+---@param faction string (Optional) The team this character belongs to.
+---@param iid string (Optional) The LDtk unique entity ID for persisting state.
+---@param health number (Optional) The starting health.
 function NPC:init(x, y, faction, iid, health)
     NPC.super.init(self, x, y, faction, iid, health)
     

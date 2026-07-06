@@ -9,6 +9,11 @@ import "scripts/NPC"
 
 class('Enemy').extends(NPC)
 
+--- Initializes a new Enemy instance.
+---@param x number The starting X position in pixels.
+---@param y number The starting Y position in pixels.
+---@param iid string (Optional) The LDtk unique entity ID for persisting state.
+---@param health number (Optional) The starting health.
 function Enemy:init(x, y, iid, health)
     -- Initialize the base NPC class with the "monster" faction
     Enemy.super.init(self, x, y, "monster", iid, health)

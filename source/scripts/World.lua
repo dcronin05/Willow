@@ -122,6 +122,11 @@ function World:init(levelName)
                     -- We pass the LDtk coordinates so the player can use them for respawning!
                     _G.player = Player(pxX, pxY, ldtkX, ldtkY)
                     
+                    -- Restore player health if it was saved
+                    if SaveManager.state.player.health then
+                        _G.player.health = SaveManager.state.player.health
+                    end
+                    
                 elseif entity.__identifier == "Sign" then
                     -- Signs can have custom text attached to them in LDtk using "Custom Fields".
                     local text = "..."
