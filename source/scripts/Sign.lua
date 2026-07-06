@@ -37,6 +37,14 @@ end
 
 --- Triggered automatically by the Player's vision box logic when the user presses 'A' nearby.
 function Sign:onInteract()
+    -- DEMO: Record that the player has read this sign in the persistent save state!
+    -- This natively triggers an auto-save so progress is never lost.
+    local flagName = "read_sign_" .. tostring(self.x) .. "_" .. tostring(self.y)
+    if not SaveManager.getFlag(flagName) then
+        SaveManager.setFlag(flagName, true)
+        print("Set world flag: " .. flagName)
+    end
+    
     -- Tell the global UIManager singleton to pop up a dialog box containing this sign's text!
     -- We pass `self` as the second argument so the UIManager knows which object triggered it (useful for callbacks).
     UIManager.showDialog(self.text, self)
