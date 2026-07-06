@@ -100,6 +100,7 @@ ldtk_data = {
     "levels": [
         {
             "identifier": "Room_1",
+            "iid": "room-1-iid",
             "uid": 7,
             "pxWid": 400,
             "pxHei": 240,
@@ -121,6 +122,7 @@ ldtk_data = {
                     "entityInstances": [
                         {
                             "__identifier": "Player",
+                            "iid": "player-iid",
                             "__grid": [12, 6],
                             "__pivot": [0, 0],
                             "__tags": [],
@@ -130,6 +132,7 @@ ldtk_data = {
                         },
                         {
                             "__identifier": "Sign",
+                            "iid": "sign-1-iid",
                             "__grid": [15, 11],
                             "__pivot": [0, 0],
                             "__tags": [],
@@ -141,6 +144,7 @@ ldtk_data = {
                         },
                         {
                             "__identifier": "Sign",
+                            "iid": "sign-2-iid",
                             "__grid": [16, 11],
                             "__pivot": [0, 0],
                             "__tags": [],
