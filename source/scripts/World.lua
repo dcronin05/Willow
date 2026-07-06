@@ -110,6 +110,11 @@ function World:init(levelName)
                     -- If we have saved coordinates, override the LDtk spawn point
                     if SaveManager.hasSavedPlayerPosition() then
                         pxX, pxY = SaveManager.getSavedPlayerPosition()
+                        
+                        -- Clamp the saved coordinates to the current level boundaries 
+                        -- in case the map was shrunk in LDtk since the last save!
+                        pxX = math.max(16, math.min(self.width - 16, pxX))
+                        pxY = math.max(16, math.min(self.height - 16, pxY))
                     end
                     
                     -- Spawn the player and assign it to a global variable so the camera and UI can reference it.
