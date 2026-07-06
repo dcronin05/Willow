@@ -176,8 +176,15 @@ ldtk_data = {
     ]
 }
 
-os.makedirs('../source/levels', exist_ok=True)
-with open('../source/levels/world.ldtk', 'w') as f:
+import os
+
+# Get the directory where this script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
+levels_dir = os.path.join(script_dir, '..', 'source', 'levels')
+os.makedirs(levels_dir, exist_ok=True)
+
+output_file = os.path.join(levels_dir, 'world.ldtk')
+with open(output_file, 'w') as f:
     json.dump(ldtk_data, f, indent=2)
 
-print("✅ Generated source/levels/world.ldtk")
+print(f"✅ Generated {output_file}")

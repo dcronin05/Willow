@@ -94,6 +94,7 @@
   "levels": [
     {
       "identifier": "Room_1",
+      "iid": "room-1-iid",
       "uid": 7,
       "pxWid": 400,
       "pxHei": 240,
@@ -115,6 +116,7 @@
           "entityInstances": [
             {
               "__identifier": "Player",
+              "iid": "player-iid",
               "__grid": [
                 12,
                 6
@@ -133,6 +135,7 @@
             },
             {
               "__identifier": "Sign",
+              "iid": "sign-1-iid",
               "__grid": [
                 15,
                 11
@@ -158,6 +161,7 @@
             },
             {
               "__identifier": "Sign",
+              "iid": "sign-2-iid",
               "__grid": [
                 16,
                 11
