@@ -9,9 +9,9 @@ import "scripts/NPC"
 
 class('Enemy').extends(NPC)
 
-function Enemy:init(x, y)
+function Enemy:init(x, y, iid, health)
     -- Initialize the base NPC class with the "monster" faction
-    Enemy.super.init(self, x, y, "monster")
+    Enemy.super.init(self, x, y, "monster", iid, health)
     
     -- Load the slime graphic
     local image = gfx.image.new("images/slime")

@@ -9,8 +9,8 @@ import "scripts/Character"
 
 class('NPC').extends(Character)
 
-function NPC:init(x, y, faction)
-    NPC.super.init(self, x, y, faction)
+function NPC:init(x, y, faction, iid, health)
+    NPC.super.init(self, x, y, faction, iid, health)
     
     -- AI State Machine
     self.state = "patrol"

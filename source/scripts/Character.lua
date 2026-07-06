@@ -9,18 +9,23 @@ local gfx = pd.graphics
 class('Character').extends(gfx.sprite)
 
 --- Initializes a new Character instance.
----@param x number The starting X position
----@param y number The starting Y position
----@param faction string The faction this character belongs to (e.g. "player", "monster", "townsfolk")
-function Character:init(x, y, faction)
+---@param x number The starting X position in pixels.
+---@param y number The starting Y position in pixels.
+---@param faction string (Optional) The team this character belongs to ("player", "monster", etc).
+---@param iid string (Optional) The LDtk unique entity ID for persisting state.
+---@param health number (Optional) The starting health, overriding maxHealth if provided.
+function Character:init(x, y, faction, iid, health)
     Character.super.init(self)
     
     self:moveTo(x, y)
     
-    -- Base Character Properties
+    -- The team this character belongs to (e.g. "player", "monster", "npc")
     self.faction = faction or "neutral"
-    self.health = 100
+    self.iid = iid
+    
+    -- Health & Combat
     self.maxHealth = 100
+    self.health = health or self.maxHealth
     self.invincible = false
     
     -- Physics simulation constants
@@ -114,6 +119,12 @@ end
 --- Handles the death sequence. Overridden by child classes for custom behavior.
 function Character:die()
     print(self.className .. " died!")
+    
+    -- If this character has a unique ID, mark them as dead forever in the save file
+    if self.iid then
+        SaveManager.setEntityKilled(self.iid)
+    end
+    
     self:remove() -- Remove from Playdate sprite list
 end
 

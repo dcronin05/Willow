@@ -107,6 +107,7 @@ function World:init(levelName)
                 
                 -- Check the string identifier of the entity to figure out which Lua class to instantiate.
                 if entity.__identifier == "Player" then
+                    local ldtkX, ldtkY = pxX, pxY
                     -- If we have saved coordinates, override the LDtk spawn point
                     if SaveManager.hasSavedPlayerPosition() then
                         pxX, pxY = SaveManager.getSavedPlayerPosition()
@@ -118,7 +119,8 @@ function World:init(levelName)
                     end
                     
                     -- Spawn the player and assign it to a global variable so the camera and UI can reference it.
-                    _G.player = Player(pxX, pxY)
+                    -- We pass the LDtk coordinates so the player can use them for respawning!
+                    _G.player = Player(pxX, pxY, ldtkX, ldtkY)
                     
                 elseif entity.__identifier == "Sign" then
                     -- Signs can have custom text attached to them in LDtk using "Custom Fields".
@@ -135,8 +137,21 @@ function World:init(levelName)
                     Sign(pxX + 8, pxY + 16, text)
                     
                 elseif entity.__identifier == "Enemy" then
-                    import "scripts/Enemy"
-                    Enemy(pxX, pxY)
+                    -- Only spawn the enemy if they aren't dead!
+                    if not SaveManager.isEntityKilled(entity.iid) then
+                        import "scripts/Enemy"
+                        
+                        -- If the enemy has a saved state (e.g. they were moved or damaged), override the LDtk values
+                        local savedHealth = nil
+                        if SaveManager.state.world.entities[entity.iid] then
+                            local state = SaveManager.state.world.entities[entity.iid]
+                            pxX = state.x
+                            pxY = state.y
+                            savedHealth = state.health
+                        end
+                        
+                        Enemy(pxX, pxY, entity.iid, savedHealth)
+                    end
                 end
             end
         end

@@ -14,13 +14,15 @@ class('Player').extends(Character)
 --- Initializes a new Player instance at the given world coordinates.
 ---@param x number The starting X position in pixels.
 ---@param y number The starting Y position in pixels.
-function Player:init(x, y)
+---@param spawnX number (Optional) The original LDtk X spawn point to respawn at.
+---@param spawnY number (Optional) The original LDtk Y spawn point to respawn at.
+function Player:init(x, y, spawnX, spawnY)
     -- Initialize the base Character class (handles coordinates, faction, and physics setup)
     Player.super.init(self, x, y, "player")
     
     -- Save our spawn point for respawning on death
-    self.spawnX = x
-    self.spawnY = y
+    self.spawnX = spawnX or x
+    self.spawnY = spawnY or y
     
     -- ==========================================
     -- ANIMATION SETUP
