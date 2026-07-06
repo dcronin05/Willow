@@ -1,11 +1,12 @@
 import json
 import os
 
-# Create 25x15 grid of 0s (empty)
-grid = [0] * (25 * 15)
+# Create 75x15 grid of 0s (empty) -> 1200 / 16 = 75 cells wide
+grid = [0] * (75 * 15)
 
-# Add floor at row 13 (index 12, so elements 300 to 324)
-for i in range(300, 325):
+# Add floor at the bottom 2 rows (indices corresponding to rows 13 and 14)
+# Row 13 starts at 13 * 75 = 975. Total cells = 75 * 15 = 1125.
+for i in range(975, 1125):
     grid[i] = 1
 
 # Create the LDtk JSON structure

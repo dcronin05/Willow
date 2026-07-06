@@ -41,9 +41,11 @@ function World:init(levelName)
     local imageTable = gfx.imagetable.new("images/tileset")
     
     -- Attach the sprite sheet to the tilemap and specify its size in GRID units (not pixels).
-    -- Since the screen is 400x240 and our tiles are 16x16, the grid size is 25x15.
+    -- Calculate grid dimensions based on the level's pixel size divided by the 16x16 tile size.
+    local gridWidth = self.width / 16
+    local gridHeight = self.height / 16
     tilemap:setImageTable(imageTable)
-    tilemap:setSize(25, 15)
+    tilemap:setSize(gridWidth, gridHeight)
 
     -- ==========================================
     -- 3. LAYER PROCESSING
@@ -61,10 +63,10 @@ function World:init(levelName)
             
             -- We iterate through every value in the 1D LDtk CSV and populate our 2D Playdate tilemap.
             for i = 1, #grid do
-                -- Convert the 1D index `i` into 2D X and Y coordinates.
+                -- Convert the 1D index `i` into 2D X and Y coordinates using the dynamic gridWidth.
                 -- Note: Lua arrays are 1-indexed, so we subtract 1 before doing the modulo/division math.
-                local x = ((i - 1) % 25) + 1
-                local y = math.floor((i - 1) / 25) + 1
+                local x = ((i - 1) % gridWidth) + 1
+                local y = math.floor((i - 1) / gridWidth) + 1
                 
                 -- In LDtk: IntGrid value `0` means empty space. Value `1` means a Wall block.
                 -- In our Playdate tileset.png: Tile `1` is the solid Wall graphic, Tile `2` is transparent air.

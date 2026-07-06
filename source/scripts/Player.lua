@@ -34,10 +34,10 @@ function Player:init(x, y)
     }
     
     -- Assign specific frames from the sprite sheet to each animation state.
-    -- The numbers correspond to the 1-indexed frames in 'images/player-table-16-32.png'.
-    self.animations.idle.startFrame, self.animations.idle.endFrame = 1, 2
-    self.animations.run.startFrame, self.animations.run.endFrame = 3, 6
-    self.animations.jump.startFrame, self.animations.jump.endFrame = 7, 7
+    -- Our generated player-table-16-32.png only has 4 frames!
+    self.animations.idle.startFrame, self.animations.idle.endFrame = 1, 1
+    self.animations.run.startFrame, self.animations.run.endFrame = 2, 3
+    self.animations.jump.startFrame, self.animations.jump.endFrame = 4, 4
     
     -- Set the default starting animation
     self.currentAnimation = self.animations.idle
