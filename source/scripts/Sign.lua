@@ -21,6 +21,7 @@ function Sign:init(x, y, text)
     
     -- Store the custom text directly on this instance so we can pass it to the UI later
     self.text = text
+    self.targetName = "Sign"
     
     -- Load the static sign graphic from the images folder
     local image = gfx.image.new("images/sign")

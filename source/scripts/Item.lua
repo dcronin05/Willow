@@ -22,6 +22,7 @@ function Item:init(x, y, itemId, uid, isDropping)
     -- Load item properties from database
     local itemData = ItemDatabase[itemId]
     if itemData then
+        self.targetName = itemData.name
         local img = gfx.image.new(itemData.imagePath)
         if img then
             self:setImage(img)

@@ -57,8 +57,35 @@ function UIManager.drawHUD()
     -- Draw Filled Health Bar based on ratio
     local fillWidth = math.max(0, math.floor((_G.player.health / _G.player.maxHealth) * 100))
     if fillWidth > 0 then
-        -- Playdate only has 1-bit color (black/white), so we'll use a patterned dither 
-        -- or solid black to represent the health fill. Let's use a solid fill.
         gfx.fillRect(12, 12, fillWidth, 10)
+    end
+    
+    -- Draw the Target HUD centered underneath the top reserved row (at Y=20)
+    if _G.player.currentInteractable then
+        local target = _G.player.currentInteractable
+        local targetName = target.targetName or target.className or "Unknown"
+        
+        -- If it's a character with health, display health too
+        local text = targetName
+        if target.health then
+            text = text .. " (HP: " .. target.health .. ")"
+        end
+        
+        -- Measure text width to draw a nice background box
+        local textWidth = gfx.getTextSize(text)
+        local boxWidth = textWidth + 16
+        local boxHeight = 20
+        local x = 200 - (boxWidth / 2)
+        local y = 20
+        
+        gfx.setColor(gfx.kColorBlack)
+        gfx.fillRoundRect(x, y, boxWidth, boxHeight, 4)
+        
+        gfx.setColor(gfx.kColorWhite)
+        gfx.setLineWidth(2)
+        gfx.drawRoundRect(x + 1, y + 1, boxWidth - 2, boxHeight - 2, 4)
+        
+        gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
+        gfx.drawText(text, x + 8, y + 3)
     end
 end

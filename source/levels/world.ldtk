@@ -470,6 +470,22 @@
 							}] }],
 							"__worldX": 752,
 							"__worldY": 192
+						},
+						{
+							"__identifier": "Enemy",
+							"__grid": [18,12],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#3E2731",
+							"iid": "7fe15130-6fc0-11f1-aee2-578789f35ace",
+							"width": 16,
+							"height": 16,
+							"defUid": 1,
+							"px": [288,192],
+							"fieldInstances": [],
+							"__worldX": 288,
+							"__worldY": 192
 						}
 					]
 				},

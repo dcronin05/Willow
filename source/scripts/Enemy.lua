@@ -32,6 +32,10 @@ function Enemy:init(x, y, iid, health)
     -- Ensure enemies render in front of the terrain (which is Z-Index -1)
     self:setZIndex(5)
     
+    -- Make enemies targetable by the interaction vision box!
+    self.isInteractable = true
+    self.targetName = "Slime"
+    
     -- Register to the update loop
     self:add()
 end
@@ -86,4 +90,11 @@ function Enemy:die()
     
     -- Call the base class die to handle cleanup and SaveManager state
     Enemy.super.die(self)
+end
+
+function Enemy:onInteract()
+    -- Taking damage from the player's attack!
+    if _G.player then
+        self:takeDamage(50, _G.player.x)
+    end
 end
