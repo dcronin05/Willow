@@ -128,6 +128,10 @@ function World:init(levelName)
                     -- Note: LDtk gives us the top-left coordinates (pxX, pxY), but our Sign Lua class anchors to the bottom-center.
                     -- So we shift the spawn point by +8 (half width) and +16 (full height) to perfectly align it with LDtk's grid.
                     Sign(pxX + 8, pxY + 16, text)
+                    
+                elseif entity.__identifier == "Enemy" then
+                    import "scripts/Enemy"
+                    Enemy(pxX, pxY)
                 end
             end
         end
