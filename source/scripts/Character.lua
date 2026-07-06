@@ -139,7 +139,6 @@ function Character:applyPhysics()
         else
             -- The step failed (wall is too high, or ceiling is too low).
             -- Revert back to the results of Pass 1!
-            self.yVelocity = 0 -- We hit a wall, so we stop horizontally, but gravity was already processed in actualY
             self:moveTo(actualX, actualY)
             -- Note: We assume they are grounded if they were grounded in Pass 1, which is already stored in `self.grounded`.
         end
