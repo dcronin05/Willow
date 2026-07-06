@@ -19,8 +19,9 @@ function Character:init(x, y, faction)
     
     -- Base Character Properties
     self.faction = faction or "neutral"
-    self.health = 10
-    self.maxHealth = 10
+    self.health = 100
+    self.maxHealth = 100
+    self.invincible = false
     
     -- Physics simulation constants
     self.xVelocity = 0      -- Current horizontal speed
@@ -82,9 +83,28 @@ function Character:applyPhysics()
 end
 
 --- Handles taking damage. Can be expanded later for I-frames and death.
-function Character:takeDamage(amount, attacker)
-    self.health = self.health - amount
-    print(self.className .. " took " .. amount .. " damage from " .. tostring(attacker) .. "! Health: " .. self.health)
+function Character:takeDamage(amount, sourceX)
+    if self.invincible then return end
+    
+    self.health = math.max(0, self.health - amount)
+    print(self.className .. " took " .. amount .. " damage! Health: " .. self.health)
+    
+    -- Knockback
+    self.yVelocity = -4
+    if sourceX then
+        if self.x > sourceX then
+            self.xVelocity = 6
+        else
+            self.xVelocity = -6
+        end
+    end
+    
+    -- I-Frames
+    self.invincible = true
+    pd.timer.performAfterDelay(1000, function()
+        self.invincible = false
+        self:setVisible(true)
+    end)
     
     if self.health <= 0 then
         print(self.className .. " died!")
@@ -130,5 +150,11 @@ function Character:updateAnimation()
         self:setImageFlip(gfx.kImageUnflipped)
     else
         self:setImageFlip(gfx.kImageFlippedX)
+    end
+    
+    -- Handle Invincibility Flickering
+    if self.invincible then
+        local ms = pd.getCurrentTimeMilliseconds()
+        self:setVisible(ms % 200 < 100)
     end
 end

@@ -75,14 +75,27 @@ function playdate.update()
         -- Get the coordinates and dimensions of the interactable object
         local ix = _G.player.currentInteractable.x
         local iy = _G.player.currentInteractable.y
-        local _, _, width, height = _G.player.currentInteractable:getBounds()
         
-        -- Calculate the top-center point of the interactable
-        local topY = iy - height
-        
-        -- Draw an inverted triangle pointing down at the object
-        gfx.fillPolygon(ix, topY - 4, ix - 4, topY - 10, ix + 4, topY - 10)
+        gfx.setColor(gfx.kColorBlack)
+        gfx.fillTriangle(ix - 4, iy - 20, ix + 4, iy - 20, ix, iy - 12)
     end
+    
+    -- ==========================================
+    -- HUD RENDERING (Screen Space)
+    -- ==========================================
+    
+    -- Save current draw offset so we can draw HUD on top of screen, not world
+    local offsetX, offsetY = gfx.getDrawOffset()
+    gfx.setDrawOffset(0, 0)
+    
+    UIManager.drawHUD()
+    
+    -- Restore draw offset for anything else that might draw in world space
+    gfx.setDrawOffset(offsetX, offsetY)
+    
+    -- ==========================================
+    
+    -- Check for global pause menu / debug overlay toggles here if needed.
 end
 
 -- ==========================================

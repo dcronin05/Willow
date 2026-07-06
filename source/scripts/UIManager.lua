@@ -27,3 +27,24 @@ end
 function UIManager.isUIActive()
     return UIManager.activeUI ~= nil
 end
+
+--- Draws persistent Heads-Up Display elements (like the Health Bar) directly to the screen.
+function UIManager.drawHUD()
+    if not _G.player then return end
+    
+    local gfx = playdate.graphics
+    
+    -- Draw Health Bar Container (Border)
+    gfx.setColor(gfx.kColorBlack)
+    gfx.setLineWidth(2)
+    gfx.drawRect(10, 10, 104, 14)
+    gfx.setLineWidth(1)
+    
+    -- Draw Filled Health Bar based on ratio
+    local fillWidth = math.max(0, math.floor((_G.player.health / _G.player.maxHealth) * 100))
+    if fillWidth > 0 then
+        -- Playdate only has 1-bit color (black/white), so we'll use a patterned dither 
+        -- or solid black to represent the health fill. Let's use a solid fill.
+        gfx.fillRect(12, 12, fillWidth, 10)
+    end
+end
