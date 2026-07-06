@@ -71,5 +71,10 @@ function playdate.update()
         local iy = _G.player.currentInteractable.y
         local _, _, width, height = _G.player.currentInteractable:getBounds()
         
+        -- Calculate the top-center point of the interactable
+        local topY = iy - height
+        
+        -- Draw an inverted triangle pointing down at the object
+        gfx.fillPolygon(ix, topY - 4, ix - 4, topY - 10, ix + 4, topY - 10)
     end
 end
