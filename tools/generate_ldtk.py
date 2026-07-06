@@ -8,6 +8,7 @@ grid = [0] * (25 * 15)
 for i in range(300, 325):
     grid[i] = 1
 
+# Create the LDtk JSON structure
 ldtk_data = {
     "__header__": {
         "fileType": "LDtk Project JSON",
@@ -15,6 +16,7 @@ ldtk_data = {
         "appVersion": "1.5.3"
     },
     "jsonVersion": "1.5.3",
+    "appBuildId": 473703,
     "worldLayout": "Free",
     "worldGridWidth": 400,
     "worldGridHeight": 240,
@@ -22,6 +24,7 @@ ldtk_data = {
     "defaultLevelHeight": 240,
     "defaultGridSize": 16,
     "bgColor": "#ffffff",
+    "externalLevels": False,
     "defs": {
         "layers": [
             {
