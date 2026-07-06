@@ -7,6 +7,7 @@
 import "CoreLibs/graphics"
 import "CoreLibs/sprites"
 import "CoreLibs/object"
+import "CoreLibs/timer"
 
 -- Import Custom Engine Scripts
 import "scripts/World"
@@ -26,8 +27,8 @@ gfx.setBackgroundColor(gfx.kColorWhite)
 SaveManager.loadGame()
 
 -- Instantiate our world which natively parses the LDtk JSON and spawns entities
--- The level is currently named Room_1 in the ldtk file.
-local world = World("Room_1")
+-- By default, LDtk names the first room "Level_0" using its auto-identifier logic.
+local world = World("Level_0")
 
 --- Main game loop called by the Playdate OS every frame (typically 30 or 50 fps).
 --- This handles camera math, sprite updates, and custom interaction UI.
@@ -62,6 +63,7 @@ function playdate.update()
     -- This function tells the Playdate engine to process movement, animations, 
     -- and collisions for all active sprites, and then draws them to the screen.
     gfx.sprite.update()
+    pd.timer.updateTimers()
     
     -- ==========================================
     -- CUSTOM RENDER OVERLAYS
