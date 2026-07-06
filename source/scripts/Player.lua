@@ -1,24 +1,39 @@
+import "CoreLibs/animation"
+
 local pd = playdate
 local gfx = pd.graphics
 
--- Define the Player class extending playdate.graphics.sprite
 class('Player').extends(gfx.sprite)
 
 function Player:init(x, y)
-    -- Initialize the parent sprite class
     Player.super.init(self)
     
-    -- Create a simple 16x32 black rectangle as a placeholder image for our player
-    local playerImage = gfx.image.new(16, 32, gfx.kColorBlack)
-    self:setImage(playerImage)
+    -- Load the animation spritesheet
+    local playerImageTable = gfx.imagetable.new("images/player")
+    
+    -- Setup animations
+    self.animations = {
+        idle = gfx.animation.loop.new(100, playerImageTable, true),
+        run = gfx.animation.loop.new(150, playerImageTable, true),
+        jump = gfx.animation.loop.new(100, playerImageTable, false)
+    }
+    
+    -- Assign frames (1-based index)
+    self.animations.idle.startFrame = 1
+    self.animations.idle.endFrame = 1
+    self.animations.run.startFrame = 2
+    self.animations.run.endFrame = 3
+    self.animations.jump.startFrame = 4
+    self.animations.jump.endFrame = 4
+    
+    self.currentAnimation = self.animations.idle
+    self:setImage(self.currentAnimation:image())
     
     -- Move the sprite to the starting coordinates
     self:moveTo(x, y)
     
-    -- Define the collision box (the whole 16x32 image)
-    self:setCollideRect(0, 0, self:getSize())
-    
-    -- Tell the game engine to actually add this sprite to the active update loop
+    -- Define the collision box (the 16x32 frame size)
+    self:setCollideRect(0, 0, 16, 32)
     self:add()
 
     -- Physics Variables
@@ -28,15 +43,14 @@ function Player:init(x, y)
     self.jumpForce = -15
     self.acceleration = 1.5
     self.maxSpeed = 5
-    self.friction = 0.75 -- 1.0 is no friction, 0.0 is instant stop
+    self.friction = 0.75
     
     -- State Variables
     self.grounded = false
+    self.facingRight = true
 end
 
 function Player:collisionResponse(other)
-    -- This tells the physics engine that when we hit something solid (like the floor),
-    -- we should slide along it rather than bouncing or stopping completely.
     return gfx.sprite.kCollisionTypeSlide
 end
 
@@ -44,49 +58,67 @@ function Player:update()
     -- Apply Gravity
     self.yVelocity = self.yVelocity + self.gravity
     
-    -- Handle D-Pad Input (Acceleration)
+    -- Handle D-Pad Input
     if pd.buttonIsPressed(pd.kButtonLeft) then
         self.xVelocity = self.xVelocity - self.acceleration
+        self.facingRight = false
     elseif pd.buttonIsPressed(pd.kButtonRight) then
         self.xVelocity = self.xVelocity + self.acceleration
+        self.facingRight = true
     else
-        -- Apply Friction when not holding left/right
         self.xVelocity = self.xVelocity * self.friction
-        -- Snap to 0 if moving very slowly to prevent infinite micro-sliding
         if math.abs(self.xVelocity) < 0.1 then self.xVelocity = 0 end
     end
     
-    -- Clamp X velocity to maxSpeed
+    -- Clamp X velocity
     if self.xVelocity > self.maxSpeed then self.xVelocity = self.maxSpeed end
     if self.xVelocity < -self.maxSpeed then self.xVelocity = -self.maxSpeed end
     
-    -- Handle Jumping (Only if grounded!)
+    -- Handle Jumping
     if pd.buttonJustPressed(pd.kButtonUp) and self.grounded then
         self.yVelocity = self.jumpForce
     end
     
-    -- Calculate where the player *wants* to go this frame
+    -- State Machine for Animation
+    local nextAnimation = self.currentAnimation
+    
+    if not self.grounded then
+        nextAnimation = self.animations.jump
+    elseif self.xVelocity ~= 0 then
+        nextAnimation = self.animations.run
+    else
+        nextAnimation = self.animations.idle
+    end
+    
+    -- If we switched animations, reset the new one so it starts from frame 1
+    if nextAnimation ~= self.currentAnimation then
+        nextAnimation.frame = nextAnimation.startFrame
+        self.currentAnimation = nextAnimation
+    end
+    
+    -- Apply the current frame image
+    self:setImage(self.currentAnimation:image())
+    
+    -- Apply flipping
+    if self.facingRight then
+        self:setImageFlip(gfx.kImageUnflipped)
+    else
+        self:setImageFlip(gfx.kImageFlippedX)
+    end
+    
+    -- Movement and Collisions
     local targetX = self.x + self.xVelocity
     local targetY = self.y + self.yVelocity
-    
-    -- Reset grounded state RIGHT BEFORE checking collisions.
-    -- (This preserves the grounded state from the previous frame for the jump check above)
     self.grounded = false
-    
-    -- self:moveWithCollisions tries to move the player, but stops if it hits a wall/floor
-    -- For now, since we have no walls, it will just move freely!
     local actualX, actualY, collisions, length = self:moveWithCollisions(targetX, targetY)
     
-    -- If we hit the floor (or ceiling), we need to stop accelerating downwards (or upwards)
     if length > 0 then
         for i=1, length do
             local collision = collisions[i]
             if collision.normal.y < 0 then
-                -- Normal pointing up (-1) means we hit the top of something (a floor)
                 self.yVelocity = 0
                 self.grounded = true
             elseif collision.normal.y > 0 then
-                -- Normal pointing down (1) means we hit the bottom of something (a ceiling)
                 self.yVelocity = 0
             end
         end
