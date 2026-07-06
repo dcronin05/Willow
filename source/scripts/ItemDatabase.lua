@@ -18,5 +18,12 @@ ItemDatabase = {
         imagePath = "images/items/sword",
         type = "equipment",
         maxStack = 1
+    },
+    silver_coin = {
+        name = "Silver Coin",
+        description = "Standard currency used across the kingdom.",
+        imagePath = "images/items/coin",
+        type = "currency",
+        maxStack = 9999
     }
 }

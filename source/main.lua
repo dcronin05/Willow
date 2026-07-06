@@ -29,6 +29,11 @@ gfx.setBackgroundColor(gfx.kColorWhite)
 -- Initialize the SaveManager to read any existing save data from flash storage
 SaveManager.loadGame()
 
+-- DEBUG: Give the player 22 silver coins for testing the new currency system
+if not SaveManager.state.inventories["player"] or not SaveManager.state.inventories["player"].items["silver_coin"] then
+    SaveManager.addItem("player", "silver_coin", 22)
+end
+
 -- Instantiate our world which natively parses the LDtk JSON and spawns entities
 -- By default, LDtk names the first room "Level_0" using its auto-identifier logic.
 local world = World("Level_0")

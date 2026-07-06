@@ -44,6 +44,7 @@ function UIManager.showInventory()
     local inventoryItems = playerInv.items or {}
     local consumableChildren = {}
     local equipmentChildren = {}
+    local currencyChildren = {}
     
     for id, qty in pairs(inventoryItems) do
         local itemDef = ItemDatabase[id]
@@ -69,6 +70,8 @@ function UIManager.showInventory()
             }
             if itemDef.type == "consumable" then
                 table.insert(consumableChildren, node)
+            elseif itemDef.type == "currency" then
+                table.insert(currencyChildren, node)
             else
                 table.insert(equipmentChildren, node)
             end
@@ -76,6 +79,7 @@ function UIManager.showInventory()
     end
     
     local rootMenu = {}
+    if #currencyChildren > 0 then table.insert(rootMenu, { title = "Currency", children = currencyChildren }) end
     if #consumableChildren > 0 then table.insert(rootMenu, { title = "Consumables", children = consumableChildren }) end
     if #equipmentChildren > 0 then table.insert(rootMenu, { title = "Equipment", children = equipmentChildren }) end
     if #rootMenu == 0 then table.insert(rootMenu, { title = "Inventory Empty" }) end

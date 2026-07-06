@@ -15,7 +15,7 @@ SaveManager.state = {
         level = 1
     },
     inventories = {
-        player = { items = {}, gold = 0 }
+        player = { items = {} }
         -- Other inventories like 'chest_1' or 'npc_bob' can be added dynamically!
     },
     world = {
@@ -164,7 +164,7 @@ end
 ---@param amount number (Optional) Amount to add, defaults to 1
 function SaveManager.addItem(invName, itemId, amount)
     amount = amount or 1
-    SaveManager.state.inventories[invName] = SaveManager.state.inventories[invName] or { items = {}, gold = 0 }
+    SaveManager.state.inventories[invName] = SaveManager.state.inventories[invName] or { items = {} }
     
     local items = SaveManager.state.inventories[invName].items
     items[itemId] = (items[itemId] or 0) + amount
