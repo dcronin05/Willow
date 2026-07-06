@@ -188,7 +188,9 @@
               ]
             }
           ],
-          "intGridCsv": []
+          "intGridCsv": [],
+          "autoLayerTiles": [],
+          "gridTiles": []
         },
         {
           "__identifier": "Collisions",
@@ -578,7 +580,9 @@
             0,
             0,
             0
-          ]
+          ],
+          "autoLayerTiles": [],
+          "gridTiles": []
         }
       ]
     }

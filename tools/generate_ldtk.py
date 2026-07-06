@@ -157,7 +157,9 @@ ldtk_data = {
                             ]
                         }
                     ],
-                    "intGridCsv": []
+                    "intGridCsv": [],
+                    "autoLayerTiles": [],
+                    "gridTiles": []
                 },
                 {
                     "__identifier": "Collisions",
@@ -171,7 +173,9 @@ ldtk_data = {
                     "layerDefUid": 1,
                     "levelId": 7,
                     "entityInstances": [],
-                    "intGridCsv": grid
+                    "intGridCsv": grid,
+                    "autoLayerTiles": [],
+                    "gridTiles": []
                 }
             ]
         }
