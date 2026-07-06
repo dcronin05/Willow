@@ -2,6 +2,7 @@ import "CoreLibs/graphics"
 import "CoreLibs/sprites"
 import "CoreLibs/object"
 
+import "scripts/LDtk"
 import "scripts/World"
 import "scripts/Player"
 import "scripts/UIManager"
@@ -13,31 +14,25 @@ local gfx = playdate.graphics
 -- Setting the background color to white automatically clears the screen every frame for us!
 gfx.setBackgroundColor(gfx.kColorWhite)
 
--- Instantiate our world (the floor) first
-local world = World()
+-- Load LDtk project
+LDtk.load("levels/world.ldtk")
 
--- Instantiate two test Signs right next to each other
-local sign1 = Sign(250, 192, "Sign 1: I am the left sign!")
-local sign2 = Sign(270, 192, "Sign 2: I am the right sign!")
-
--- Instantiate our player in the center of the screen (make it global)
-_G.player = Player(200, 100)
+-- Instantiate our world which builds the tilemaps and spawns the LDtk entities
+local world = World("Room_1")
 
 function playdate.update()
     -- CAMERA LOGIC:
-    -- We want the player to always be in the center of the screen (X: 200, Y: 120)
-    -- So we calculate how far the player has moved from the center, and shift the entire drawing canvas in the opposite direction!
-    local offsetX = 200 - _G.player.x
-    local offsetY = 120 - _G.player.y
-    
-    -- Apply the offset to the graphics context
-    gfx.setDrawOffset(offsetX, offsetY)
+    if _G.player then
+        local offsetX = 200 - _G.player.x
+        local offsetY = 120 - _G.player.y
+        gfx.setDrawOffset(offsetX, offsetY)
+    end
 
     -- This function tells the Playdate engine to draw all active sprites to the screen
     gfx.sprite.update()
     
     -- Draw subtle interaction indicator above the interactable item
-    if _G.player.currentInteractable and not UIManager.isUIActive() then
+    if _G.player and _G.player.currentInteractable and not UIManager.isUIActive() then
         local ix = _G.player.currentInteractable.x
         local iy = _G.player.currentInteractable.y
         local _, _, width, height = _G.player.currentInteractable:getBounds()
