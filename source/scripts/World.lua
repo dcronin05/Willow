@@ -68,9 +68,11 @@ function World:init(levelName)
                 local x = ((i - 1) % gridWidth) + 1
                 local y = math.floor((i - 1) / gridWidth) + 1
                 
-                -- In LDtk: IntGrid value `0` means empty space. Value `1` means a Wall block.
-                -- In our Playdate tileset.png: Tile `1` is the solid Wall graphic, Tile `2` is transparent air.
-                local tileID = grid[i] == 1 and 1 or 2
+                -- In LDtk: IntGrid value `0` means empty space. `1` means Grass. `2` means Dirt.
+                -- In our Playdate tileset.png: Tile 1 is Grass, Tile 2 is Dirt, Tile 3 is Air.
+                local tileID = 3 -- Default to Air
+                if grid[i] == 1 then tileID = 1 end
+                if grid[i] == 2 then tileID = 2 end
                 
                 -- Place the correct tile graphic onto the tilemap at this grid coordinate.
                 tilemap:setTileAtPosition(x, y, tileID)
@@ -90,8 +92,8 @@ function World:init(levelName)
             
             -- Finally, generate solid physics bounding boxes!
             -- We tell Playdate to generate solid walls for EVERY tile in the tilemap, EXCEPT for the tile IDs listed in the table.
-            -- Since Tile 2 is "transparent air", we pass `{2}` to tell Playdate it has no collision.
-            gfx.sprite.addWallSprites(tilemap, {2})
+            -- Since Tile 3 is "transparent air", we pass `{3}` to tell Playdate it has no collision.
+            gfx.sprite.addWallSprites(tilemap, {3})
             
         -- ------------------------------------------
         -- LAYER: ENTITIES (Player, Signs)
