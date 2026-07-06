@@ -40,9 +40,9 @@ function Player:init(x, y)
     self.xVelocity = 0
     self.yVelocity = 0
     self.gravity = 1.0
-    self.jumpForce = -7
-    self.acceleration = 1.5
-    self.maxSpeed = 5
+    self.jumpForce = -9
+    self.acceleration = 1.0
+    self.maxSpeed = 3
     self.friction = 0.75
     
     -- State Variables
@@ -51,6 +51,9 @@ function Player:init(x, y)
 end
 
 function Player:collisionResponse(other)
+    if other.isInteractable then
+        return gfx.sprite.kCollisionTypeOverlap
+    end
     return gfx.sprite.kCollisionTypeSlide
 end
 
@@ -122,5 +125,21 @@ function Player:update()
                 self.yVelocity = 0
             end
         end
+    end
+    
+    -- Interaction Detection
+    local overlapping = self:overlappingSprites()
+    self.currentInteractable = nil
+    
+    for i=1, #overlapping do
+        if overlapping[i].isInteractable then
+            self.currentInteractable = overlapping[i]
+            break
+        end
+    end
+    
+    -- Trigger Interaction
+    if pd.buttonJustPressed(pd.kButtonA) and self.currentInteractable then
+        self.currentInteractable:onInteract()
     end
 end
