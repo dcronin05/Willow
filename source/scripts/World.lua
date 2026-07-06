@@ -107,6 +107,11 @@ function World:init(levelName)
                 
                 -- Check the string identifier of the entity to figure out which Lua class to instantiate.
                 if entity.__identifier == "Player" then
+                    -- If we have saved coordinates, override the LDtk spawn point
+                    if SaveManager.hasSavedPlayerPosition() then
+                        pxX, pxY = SaveManager.getSavedPlayerPosition()
+                    end
+                    
                     -- Spawn the player and assign it to a global variable so the camera and UI can reference it.
                     _G.player = Player(pxX, pxY)
                     

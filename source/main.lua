@@ -14,12 +14,16 @@ import "scripts/Player"
 import "scripts/UIManager"
 import "scripts/MessageBox"
 import "scripts/Sign"
+import "scripts/SaveManager"
 
 -- Cache the graphics API for performance
 local gfx = playdate.graphics
 
 -- Setting the background color to white automatically clears the screen every frame for us!
 gfx.setBackgroundColor(gfx.kColorWhite)
+
+-- Initialize the SaveManager to read any existing save data from flash storage
+SaveManager.loadGame()
 
 -- Instantiate our world which natively parses the LDtk JSON and spawns entities
 -- By default, LDtk names the first room "Level_0" using its auto-identifier logic.
@@ -77,4 +81,22 @@ function playdate.update()
         -- Draw an inverted triangle pointing down at the object
         gfx.fillPolygon(ix, topY - 4, ix - 4, topY - 10, ix + 4, topY - 10)
     end
+end
+
+-- ==========================================
+-- OS LIFECYCLE HOOKS
+-- ==========================================
+-- These functions are automatically called by the Playdate OS when the game is 
+-- interrupted or closed, ensuring we save state without dropping frames during gameplay.
+
+function playdate.gameWillTerminate()
+    SaveManager.saveGame()
+end
+
+function playdate.deviceWillSleep()
+    SaveManager.saveGame()
+end
+
+function playdate.deviceWillLock()
+    SaveManager.saveGame()
 end
