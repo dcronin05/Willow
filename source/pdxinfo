@@ -1,0 +1,6 @@
+name=Willow
+author=Developer
+description=A sprawling side-scrolling Metroidvania RPG.
+bundleID=com.developer.willow
+version=1.0
+buildNumber=1
