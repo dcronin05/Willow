@@ -72,6 +72,8 @@ end
 --- Applies gravity and resolves collisions. 
 --- Child classes (Player, NPC) should call this in their update loop AFTER calculating their xVelocity and jumping logic.
 function Character:applyPhysics()
+    local startX, startY = self.x, self.y
+    
     -- Apply gravity every frame
     self.yVelocity = self.yVelocity + self.gravity
     
@@ -82,24 +84,64 @@ function Character:applyPhysics()
     -- Assume we are falling until a floor collision proves otherwise
     self.grounded = false
     
-    -- Attempt to move the sprite
+    -- Pass 1: Standard Movement
     local actualX, actualY, collisions, length = self:moveWithCollisions(targetX, targetY)
     
+    local hitWall = false
     if length > 0 then
         for i=1, length do
-            local collision = collisions[i]
-            
+            local col = collisions[i]
             -- Only resolve physics for solid Slide collisions
-            if collision.type == gfx.sprite.kCollisionTypeSlide then
-                if collision.normal.y < 0 then
+            if col.type == gfx.sprite.kCollisionTypeSlide then
+                if col.normal.y < 0 then
                     -- Hit floor
                     self.yVelocity = 0
                     self.grounded = true
-                elseif collision.normal.y > 0 then
+                elseif col.normal.y > 0 then
                     -- Hit ceiling
                     self.yVelocity = 0
+                elseif col.normal.x ~= 0 then
+                    -- Hit horizontal wall
+                    hitWall = true
                 end
             end
+        end
+    end
+    
+    -- Pass 2: Automatic Stair-Stepping
+    -- If we hit a wall and are moving horizontally, try to step over it!
+    if hitWall and math.abs(self.xVelocity) > 0.1 then
+        -- Reset to starting position to perform the step maneuver
+        self:moveTo(startX, startY)
+        
+        -- 1. Lift up by 16 pixels (1 tile)
+        local upX, upY = self:moveWithCollisions(startX, startY - 16)
+        
+        -- 2. Move forward over the obstacle
+        local fwdX, fwdY = self:moveWithCollisions(startX + self.xVelocity, upY)
+        
+        -- 3. Bring them back down to rest on top of the obstacle
+        local downX, downY, downCols, downLen = self:moveWithCollisions(fwdX, fwdY + 16 + self.yVelocity)
+        
+        -- If we successfully made forward progress, keep the stepped position!
+        if math.abs(fwdX - startX) > 0.1 then
+            -- We successfully stepped up! Re-evaluate grounding.
+            self.grounded = false
+            if downLen > 0 then
+                for i=1, downLen do
+                    local col = downCols[i]
+                    if col.type == gfx.sprite.kCollisionTypeSlide and col.normal.y < 0 then
+                        self.yVelocity = 0
+                        self.grounded = true
+                    end
+                end
+            end
+        else
+            -- The step failed (wall is too high, or ceiling is too low).
+            -- Revert back to the results of Pass 1!
+            self.yVelocity = 0 -- We hit a wall, so we stop horizontally, but gravity was already processed in actualY
+            self:moveTo(actualX, actualY)
+            -- Note: We assume they are grounded if they were grounded in Pass 1, which is already stored in `self.grounded`.
         end
     end
 end
