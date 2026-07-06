@@ -34,6 +34,7 @@ function Player:init(x, y)
     
     -- Define the collision box (the 16x32 frame size)
     self:setCollideRect(0, 0, 16, 32)
+    self:setZIndex(10) -- Ensure player is drawn in front of signs and other interactables
     self:add()
 
     -- Physics Variables

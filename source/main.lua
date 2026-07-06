@@ -18,9 +18,20 @@ local world = World("Room_1")
 
 function playdate.update()
     -- CAMERA LOGIC:
-    if _G.player then
-        local offsetX = 200 - _G.player.x
-        local offsetY = 120 - _G.player.y
+    if _G.player and world then
+        -- Target camera offset (centers the player on screen)
+        local targetX = 200 - _G.player.x
+        local targetY = 120 - _G.player.y
+        
+        -- Clamp to level bounds!
+        -- Minimum offset is when camera hits right/bottom edge (screen - world size)
+        -- Maximum offset is 0 (top-left edge)
+        local minOffsetX = math.min(0, 400 - world.width)
+        local minOffsetY = math.min(0, 240 - world.height)
+        
+        local offsetX = math.max(minOffsetX, math.min(0, targetX))
+        local offsetY = math.max(minOffsetY, math.min(0, targetY))
+        
         gfx.setDrawOffset(offsetX, offsetY)
     end
 

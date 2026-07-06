@@ -12,6 +12,8 @@ function World:init(levelName)
     for _, level in ipairs(ldtkData.levels) do
         if level.identifier == levelName then
             levelData = level
+            self.width = level.pxWid
+            self.height = level.pxHei
             break
         end
     end
