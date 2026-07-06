@@ -25,8 +25,13 @@ function Player:init(x, y)
     self.xVelocity = 0
     self.yVelocity = 0
     self.gravity = 1.0
-    self.jumpForce = -10
-    self.runSpeed = 4
+    self.jumpForce = -15
+    self.acceleration = 1.5
+    self.maxSpeed = 5
+    self.friction = 0.75 -- 1.0 is no friction, 0.0 is instant stop
+    
+    -- State Variables
+    self.grounded = false
 end
 
 function Player:collisionResponse(other)
@@ -36,21 +41,30 @@ function Player:collisionResponse(other)
 end
 
 function Player:update()
-    -- Apply Gravity to our vertical velocity every frame
+    -- Apply Gravity
     self.yVelocity = self.yVelocity + self.gravity
     
-    -- Reset horizontal velocity every frame unless a button is held
-    self.xVelocity = 0
+    -- Reset grounded state every frame; collisions will turn it back on if we hit the floor
+    self.grounded = false
     
-    -- Handle D-Pad Input
+    -- Handle D-Pad Input (Acceleration)
     if pd.buttonIsPressed(pd.kButtonLeft) then
-        self.xVelocity = -self.runSpeed
+        self.xVelocity = self.xVelocity - self.acceleration
     elseif pd.buttonIsPressed(pd.kButtonRight) then
-        self.xVelocity = self.runSpeed
+        self.xVelocity = self.xVelocity + self.acceleration
+    else
+        -- Apply Friction when not holding left/right
+        self.xVelocity = self.xVelocity * self.friction
+        -- Snap to 0 if moving very slowly to prevent infinite micro-sliding
+        if math.abs(self.xVelocity) < 0.1 then self.xVelocity = 0 end
     end
     
-    -- Handle Jumping
-    if pd.buttonJustPressed(pd.kButtonA) then
+    -- Clamp X velocity to maxSpeed
+    if self.xVelocity > self.maxSpeed then self.xVelocity = self.maxSpeed end
+    if self.xVelocity < -self.maxSpeed then self.xVelocity = -self.maxSpeed end
+    
+    -- Handle Jumping (Only if grounded!)
+    if pd.buttonJustPressed(pd.kButtonA) and self.grounded then
         self.yVelocity = self.jumpForce
     end
     
@@ -66,7 +80,12 @@ function Player:update()
     if length > 0 then
         for i=1, length do
             local collision = collisions[i]
-            if collision.normal.y ~= 0 then -- Hit the floor or ceiling
+            if collision.normal.y < 0 then
+                -- Normal pointing up (-1) means we hit the top of something (a floor)
+                self.yVelocity = 0
+                self.grounded = true
+            elseif collision.normal.y > 0 then
+                -- Normal pointing down (1) means we hit the bottom of something (a ceiling)
                 self.yVelocity = 0
             end
         end
