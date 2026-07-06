@@ -7,6 +7,11 @@ draw = ImageDraw.Draw(img)
 def draw_head(draw, x_offset):
     # A simple square head
     draw.rectangle([x_offset+4, 2, x_offset+11, 9], fill=0)
+    # Draw a white eye looking right
+    draw.point((x_offset+9, 4), fill=1)
+    draw.point((x_offset+10, 4), fill=1)
+    # Draw a little nose sticking out to the right
+    draw.point((x_offset+12, 5), fill=0)
 
 def draw_torso(draw, x_offset):
     # A simple rectangle body

@@ -40,7 +40,7 @@ function Player:init(x, y)
     self.xVelocity = 0
     self.yVelocity = 0
     self.gravity = 1.0
-    self.jumpForce = -15
+    self.jumpForce = -7
     self.acceleration = 1.5
     self.maxSpeed = 5
     self.friction = 0.75
