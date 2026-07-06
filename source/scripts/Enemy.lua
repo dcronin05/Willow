@@ -85,8 +85,12 @@ function Enemy:die()
     -- Generate a unique ID for the dropped item using current time and random number
     local uid = "drop_" .. pd.getCurrentTimeMilliseconds() .. "_" .. math.random(1000)
     
-    -- Spawn a potion! (x, y, itemId, uid, isDropping=true)
-    Item(self.x, self.y, "potion", uid, true)
+    -- Randomly select a loot drop for testing!
+    local lootTable = {"potion", "iron_sword", "rapier", "greatsword", "fireball"}
+    local lootId = lootTable[math.random(#lootTable)]
+    
+    -- Spawn the item! (x, y, itemId, uid, isDropping=true)
+    Item(self.x, self.y, lootId, uid, true)
     
     -- Call the base class die to handle cleanup and SaveManager state (with a 60s respawn timer!)
     Enemy.super.die(self, 60)

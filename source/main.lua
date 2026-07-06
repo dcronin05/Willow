@@ -19,6 +19,7 @@ import "scripts/SaveManager"
 import "scripts/ItemDatabase"
 import "scripts/TreeMenu"
 import "scripts/Item"
+import "scripts/Projectile"
 
 -- Cache the graphics API for performance
 local gfx = playdate.graphics

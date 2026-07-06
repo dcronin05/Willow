@@ -125,15 +125,91 @@ function Player:update()
         
         -- Press A to Interact or Attack!
         if pd.buttonJustPressed(pd.kButtonA) then
-            if self.currentInteractable then
+            -- Cooldown Check (Default 500ms if no weapon)
+            local now = pd.getCurrentTimeMilliseconds()
+            if self.lastAttackTime and (now - self.lastAttackTime) < self.attackCooldown then
+                return -- Still on cooldown!
+            end
+            
+            -- Fetch Equipped Weapon from Database
+            local weaponId = SaveManager.state.equipment.weapon
+            local weapon = ItemDatabase[weaponId]
+            
+            -- Default bare-hands attack if somehow unarmed
+            if not weapon then 
+                weapon = { attackType = "melee", damage = 5, range = 20, maxTargets = 1, cooldown = 500 }
+            end
+            
+            self.lastAttackTime = now
+            self.attackCooldown = weapon.cooldown or 500
+            
+            -- If we are standing directly in front of an interactable sign/chest/etc, we interact INSTEAD of attacking
+            -- (Unless the currentInteractable is actually an Enemy we want to hit!)
+            if self.currentInteractable and self.currentInteractable.className ~= "Enemy" then
                 self.currentInteractable:onInteract()
-            else
-                -- DEBUG: Attack nearest enemy in front of us
-                for i=1, #sprites do
-                    if sprites[i].className == "Enemy" then
-                        sprites[i]:takeDamage(50, self.x)
-                        break
+                return
+            end
+            
+            -- ========================================================
+            -- HYBRID COMBAT ENGINE
+            -- ========================================================
+            
+            if weapon.attackType == "melee" then
+                -- PHYSICAL HITBOX
+                -- Determine the hit area based on facing direction and weapon range
+                local hitX = self.facingRight and self.x or (self.x - weapon.range)
+                local hitY = self.y - 20
+                local w = weapon.range
+                local h = 40
+                
+                -- Query all sprites in the attack box
+                local hitSprites = gfx.sprite.querySpritesInRect(hitX, hitY, w, h)
+                local enemiesHit = {}
+                
+                for i=1, #hitSprites do
+                    local s = hitSprites[i]
+                    if s.className == "Enemy" then
+                        table.insert(enemiesHit, { sprite = s, dist = math.abs(self.x - s.x) })
                     end
+                end
+                
+                -- Sort by distance so we hit the closest enemies first
+                table.sort(enemiesHit, function(a, b) return a.dist < b.dist end)
+                
+                -- Deal damage up to maxTargets limit
+                local maxTargets = weapon.maxTargets or 1
+                for i=1, math.min(#enemiesHit, maxTargets) do
+                    enemiesHit[i].sprite:takeDamage(weapon.damage, self.x)
+                end
+                
+            elseif weapon.attackType == "projectile" then
+                -- RANGED PROJECTILE
+                -- Projectile.lua handles its own splash damage on collision!
+                Projectile(self.x, self.y - 10, weapon, self.facingRight)
+                
+            elseif weapon.attackType == "magic" and weapon.requiresTarget then
+                -- HOMING / INSTANT TARGET-LOCK MAGIC
+                if self.currentInteractable and self.currentInteractable.className == "Enemy" then
+                    local target = self.currentInteractable
+                    target:takeDamage(weapon.damage, self.x)
+                    
+                    if weapon.splashRadius and weapon.splashRadius > 0 then
+                        -- Deal radial splash damage around the target!
+                        local r = weapon.splashRadius
+                        local blastSprites = gfx.sprite.querySpritesInRect(target.x - r, target.y - r, r*2, r*2)
+                        for i=1, #blastSprites do
+                            local s = blastSprites[i]
+                            if s.className == "Enemy" and s ~= target then
+                                local dist = math.sqrt((s.x - target.x)^2 + (s.y - target.y)^2)
+                                if dist <= r then
+                                    s:takeDamage(weapon.damage, target.x)
+                                end
+                            end
+                        end
+                    end
+                else
+                    -- Spell fizzles if no target!
+                    print("No target for spell!")
                 end
             end
         end

@@ -18,6 +18,9 @@ SaveManager.state = {
         player = { items = {} }
         -- Other inventories like 'chest_1' or 'npc_bob' can be added dynamically!
     },
+    equipment = {
+        weapon = "iron_sword"
+    },
     world = {
         currentRoom = "Level_0",
         flags = {}, -- e.g. ["read_first_sign"] = true, ["chest_5_opened"] = true

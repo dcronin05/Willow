@@ -65,6 +65,14 @@ function UIManager.showInventory()
             -- We must declare the table first so the closure inside can reference it!
             local node = {}
             node.title = itemDef.name
+            
+            -- If this is the currently equipped item, append an indicator!
+            if itemDef.type == "equipment" and itemDef.slot then
+                if SaveManager.state.equipment and SaveManager.state.equipment[itemDef.slot] == id then
+                    node.title = node.title .. " [E]"
+                end
+            end
+            
             node.qty = qty
             
             -- This function is triggered dynamically by TreeMenu.lua when the player presses 'A' on this item
@@ -101,6 +109,24 @@ function UIManager.showInventory()
                         end
                         
                         -- Force the TreeMenu to redraw the screen with the new quantities
+                        activeMenu:drawUI()
+                    end
+                elseif itemDef.type == "equipment" then
+                    -- LOGIC: Equipping Weapons/Armor
+                    -- For now we only have weapons, but we can check itemDef.slot later!
+                    if itemDef.slot == "weapon" then
+                        SaveManager.state.equipment.weapon = id
+                        SaveManager.saveGame()
+                        
+                        -- Update the UI text dynamically so we don't lose our scroll position!
+                        for i = 1, #activeMenu.currentData do
+                            local n = activeMenu.currentData[i]
+                            -- Strip out the [E] tag from all items in this category
+                            n.title = string.gsub(n.title, " %[E%]", "")
+                        end
+                        -- Append it to the newly selected item
+                        node.title = node.title .. " [E]"
+                        
                         activeMenu:drawUI()
                     end
                 end

@@ -50,12 +50,32 @@ end
 
 function Item:update()
     if self.isDropping then
-        self.yVelocity = self.yVelocity + self.gravity
-        self:moveBy(self.xVelocity, self.yVelocity)
+        -- Apply gravity with a terminal velocity to prevent tunneling through thin floors!
+        self.yVelocity = math.min(self.yVelocity + self.gravity, 12)
         
-        -- Did we land?
-        if self.y >= self.startY then
-            self:moveTo(self.x, self.startY)
+        local targetX = self.x + self.xVelocity
+        local targetY = self.y + self.yVelocity
+        
+        -- Use REAL physics collisions instead of teleporting through walls
+        local actualX, actualY, collisions, length = self:moveWithCollisions(targetX, targetY)
+        
+        local hitFloor = false
+        if length > 0 then
+            for i=1, length do
+                local normal = collisions[i].normal
+                if normal.y == -1 then
+                    hitFloor = true
+                elseif normal.x ~= 0 then
+                    -- Hit a wall, kill horizontal momentum
+                    self.xVelocity = 0
+                end
+            end
+        end
+        
+        -- Check if we hit the floor
+        if hitFloor or actualY < targetY then
+            self.yVelocity = 0
+            self.xVelocity = 0
             self.isDropping = false
             self:setZIndex(1)
             
@@ -63,6 +83,14 @@ function Item:update()
             SaveManager.registerDroppedItem(self.uid, self.itemId, self.x, self.y)
         end
     end
+end
+
+-- Slide along solids, overlap everything else
+function Item:collisionResponse(other)
+    if not other.className then 
+        return gfx.sprite.kCollisionTypeSlide 
+    end
+    return gfx.sprite.kCollisionTypeOverlap
 end
 
 function Item:onInteract()
