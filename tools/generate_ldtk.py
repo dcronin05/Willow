@@ -89,7 +89,8 @@ ldtk_data = {
                 "__cHei": 1,
                 "spacing": 0,
                 "padding": 0,
-                "tags": []
+                "tags": [],
+                "enumTags": []
             }
         ],
         "enums": [],
