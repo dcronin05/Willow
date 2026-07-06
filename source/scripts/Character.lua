@@ -39,8 +39,8 @@ end
 
 --- Standard collision response for all Characters.
 function Character:collisionResponse(other)
-    -- Walk in front of interactables (like signs)
-    if other.isInteractable then
+    -- Walk in front of interactables (like signs) or through other Characters
+    if other.isInteractable or other:isa(Character) then
         return gfx.sprite.kCollisionTypeOverlap
     end
     -- Slide against solid walls and floors
