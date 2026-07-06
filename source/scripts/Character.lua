@@ -42,6 +42,23 @@ function Character:init(x, y, faction, iid, health)
     self.facingRight = true -- Tracks direction for sprite flipping
 end
 
+--- Configures the character's collision box and anchor point.
+--- By cutting 4 pixels off the bottom of the collision box, the sprite visually "dips" into the ground tiles, 
+--- creating a 2.5D depth effect (like the Player avatar).
+---@param width number (Optional) Width of the collision box. Defaults to sprite width.
+---@param height number (Optional) Height of the collision box. Defaults to sprite height.
+function Character:setupCollision(width, height)
+    if not width or not height then
+        width, height = self:getSize()
+    end
+    
+    -- Anchor all characters to their bottom-center so they sit exactly on the floor
+    self:setCenter(0.5, 1)
+    
+    -- Set the collision box to be 4 pixels shorter than the sprite so their feet dip into the grass
+    self:setCollideRect(0, 0, width, height - 4)
+end
+
 --- Standard collision response for all Characters.
 function Character:collisionResponse(other)
     -- Walk in front of interactables (like signs) or through other Characters

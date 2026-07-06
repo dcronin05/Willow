@@ -41,8 +41,8 @@ function Player:init(x, y, spawnX, spawnY)
     self.currentAnimation = self.animations.idle
     self:setImage(self.currentAnimation:image())
     
-    -- Define the physical bounding box for collisions. 
-    self:setCollideRect(0, 0, 16, 28)
+    -- Configure the standard 2.5D physical bounding box for collisions. 
+    self:setupCollision(16, 32)
     self:setZIndex(10)
     
     self:add()

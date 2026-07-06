@@ -22,14 +22,13 @@ function Enemy:init(x, y, iid, health)
     local image = gfx.image.new("images/slime")
     if image then
         self:setImage(image)
-        self:setCollideRect(0, 0, self:getSize())
+        self:setupCollision()
     else
         print("WARNING: images/slime not found")
     end
     
-    -- Anchor bottom center
-    self:setCenter(0.5, 1)
     
+
     -- Ensure enemies render in front of the terrain (which is Z-Index -1)
     self:setZIndex(5)
     
