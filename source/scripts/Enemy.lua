@@ -25,6 +25,9 @@ function Enemy:init(x, y)
     -- Anchor bottom center
     self:setCenter(0.5, 1)
     
+    -- Ensure enemies render in front of the terrain (which is Z-Index -1)
+    self:setZIndex(5)
+    
     -- Register to the update loop
     self:add()
 end
