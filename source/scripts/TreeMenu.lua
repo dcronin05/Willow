@@ -33,47 +33,36 @@ end
 
 --- Redraws the menu graphics to an image and assigns it to this sprite.
 function TreeMenu:drawUI()
-    local boxWidth = 140
-    local boxHeight = 190
+    -- We'll make the image cover the entire left half of the screen
+    local boxWidth = 200
+    local boxHeight = 240
     local img = gfx.image.new(boxWidth, boxHeight)
     
     gfx.pushContext(img)
-        -- Background (Solid black for readability)
-        gfx.setColor(gfx.kColorBlack)
-        gfx.fillRoundRect(0, 0, boxWidth, boxHeight, 4)
+        -- =========================================================================
+        -- TRUE FIXED-CURSOR SCROLLING
+        -- =========================================================================
+        local itemHeight = 22
+        local fixedCursorY = 100 -- The cursor is permanently locked to this Y coordinate
         
-        -- Border
-        gfx.setColor(gfx.kColorWhite)
-        gfx.setLineWidth(2)
-        gfx.drawRoundRect(1, 1, boxWidth-2, boxHeight-2, 4)
-        
-        -- Calculate how many items can fit and where the "fixed cursor" should be visually
-        local maxVisibleItems = 7
-        local itemHeight = 20
-        -- We want the selected item to appear roughly in the middle of the list
-        local visualCursorIndex = math.min(self.selectedIndex, 4) 
-        -- If we are at the very bottom of a long list, the cursor might shift down
-        if self.selectedIndex > #self.currentData - 3 and #self.currentData > maxVisibleItems then
-            visualCursorIndex = maxVisibleItems - (#self.currentData - self.selectedIndex)
-        end
-        
-        local startIndex = self.selectedIndex - visualCursorIndex + 1
-        local endIndex = startIndex + maxVisibleItems - 1
-        
-        -- Draw Items
-        gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
-        
-        local yOffset = 10
         if #self.currentData == 0 then
-            gfx.drawText("*Empty*", 24, yOffset)
+            drawThickOutlinedText("*Empty*", 25, fixedCursorY)
         else
-            for i = startIndex, endIndex do
-                if self.currentData[i] then
-                    local item = self.currentData[i]
+            -- We iterate through every item, but only draw the ones that fit on screen!
+            for i = 1, #self.currentData do
+                local item = self.currentData[i]
+                
+                -- Calculate this item's Y position relative to the currently selected item
+                -- If i == selectedIndex, distance is 0, so yPos == fixedCursorY
+                local distance = i - self.selectedIndex
+                local yPos = fixedCursorY + (distance * itemHeight)
+                
+                -- Culling: Only draw items that are actually within the screen bounds
+                if yPos > -itemHeight and yPos < boxHeight then
                     
-                    -- Draw the fixed cursor if this is the selected item
+                    -- Draw the permanently fixed cursor caret
                     if i == self.selectedIndex then
-                        gfx.drawText(">", 8, yOffset)
+                        UIManager.drawThickOutlinedText(">", 9, yPos)
                     end
                     
                     local text = item.title or "Unknown"
@@ -81,14 +70,8 @@ function TreeMenu:drawUI()
                         text = text .. " x" .. item.qty
                     end
                     
-                    gfx.drawText(text, 24, yOffset)
-                    
-                    -- If it has children, draw a little indicator
-                    if item.children then
-                        gfx.drawText("+", boxWidth - 16, yOffset)
-                    end
+                    UIManager.drawThickOutlinedText(text, 24, yPos)
                 end
-                yOffset = yOffset + itemHeight
             end
         end
     gfx.popContext()

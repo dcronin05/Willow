@@ -36,55 +36,114 @@ function UIManager.clearUI()
     end
 end
 
---- Opens the Inventory Menu
+--- Opens the Inventory Menu by dynamically generating a hierarchical Tree Menu structure.
+--- This reads the latest inventory state from SaveManager, cross-references it with ItemDatabase,
+--- and groups items into visual categories (Currency, Consumables, Equipment).
 function UIManager.showInventory()
+    -- Prevent opening the UI if another menu (like a dialog box) is already open
     if UIManager.activeUI then return end
     
+    -- Safely retrieve the player's inventory from the global save state.
+    -- We use 'or {}' to prevent nil reference crashes if the inventory hasn't been initialized yet.
     local playerInv = SaveManager.state.inventories["player"] or {}
     local inventoryItems = playerInv.items or {}
+    
+    -- These tables will act as the "sub-menus" or "folders" in our Tree Menu.
     local consumableChildren = {}
     local equipmentChildren = {}
     local currencyChildren = {}
     
+    -- Loop over every item ID and quantity stored in the player's save data
     for id, qty in pairs(inventoryItems) do
+        -- Look up the actual item data (name, description, type, healAmount) from our static database
         local itemDef = ItemDatabase[id]
+        
+        -- Only proceed if the item exists in the database (prevents crashing from deprecated items)
         if itemDef then
+            
+            -- Create a 'Node' representing this specific item in the menu list.
             local node = {
                 title = itemDef.name,
                 qty = qty,
+                
+                -- This function is triggered dynamically by TreeMenu.lua when the player presses 'A' on this item
                 onSelect = function()
+                    -- LOGIC: Consumable Items
                     if itemDef.type == "consumable" then
+                        
+                        -- Specific logic for health potions
                         if id == "potion" then
                             if _G.player then
+                                -- Read the healAmount from the DB, defaulting to 25 if missing
                                 local heal = itemDef.healAmount or 25
+                                -- Add health, but clamp it using math.min so we never exceed maxHealth
                                 _G.player.health = math.min(_G.player.maxHealth, _G.player.health + heal)
                             end
+                            
+                            -- Tell the SaveManager to remove 1 potion from the inventory and save to disk
                             SaveManager.consumeItem("player", id, 1)
                             
-                            -- Rebuild UI to reflect new quantities or removed items
+                            -- Since we just consumed an item, the quantity displayed on screen is now wrong!
+                            -- If we hit 0, the item shouldn't even be in the list anymore.
+                            -- To fix this quickly, we simply close and instantly reopen the menu to force a full rebuild.
                             UIManager.clearUI()
                             UIManager.showInventory()
                         end
                     end
                 end
             }
+            
+            -- Sort the dynamically generated node into the correct category table based on its type
             if itemDef.type == "consumable" then
                 table.insert(consumableChildren, node)
             elseif itemDef.type == "currency" then
                 table.insert(currencyChildren, node)
             else
+                -- Fallback for weapons, armor, quest items, etc.
                 table.insert(equipmentChildren, node)
             end
         end
     end
     
+    -- Now that we have grouped all items, we build the "Root" of the tree menu.
+    -- We only insert a category if it actually has items inside it (so we don't show an empty "Equipment" folder).
     local rootMenu = {}
     if #currencyChildren > 0 then table.insert(rootMenu, { title = "Currency", children = currencyChildren }) end
     if #consumableChildren > 0 then table.insert(rootMenu, { title = "Consumables", children = consumableChildren }) end
     if #equipmentChildren > 0 then table.insert(rootMenu, { title = "Equipment", children = equipmentChildren }) end
+    
+    -- If they have literally nothing, show a placeholder node so the menu isn't completely blank
     if #rootMenu == 0 then table.insert(rootMenu, { title = "Inventory Empty" }) end
     
+    -- Instantiate our generic TreeMenu class, passing it our dynamically built hierarchical data!
     UIManager.activeUI = TreeMenu(rootMenu)
+end
+
+--- Draws text that is physically 2x thicker (by stamping it in a 2x2 grid) 
+--- and wraps it in a solid 1px black outline.
+function UIManager.drawThickOutlinedText(text, x, y)
+    local gfx = playdate.graphics
+    -- 1. Draw the Black Outline (Outer Ring)
+    gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
+    gfx.drawText(text, x - 1, y)
+    gfx.drawText(text, x - 1, y + 1)
+    gfx.drawText(text, x + 2, y)
+    gfx.drawText(text, x + 2, y + 1)
+    gfx.drawText(text, x, y - 1)
+    gfx.drawText(text, x + 1, y - 1)
+    gfx.drawText(text, x, y + 2)
+    gfx.drawText(text, x + 1, y + 2)
+    gfx.drawText(text, x - 1, y - 1)
+    gfx.drawText(text, x + 2, y - 1)
+    gfx.drawText(text, x - 1, y + 2)
+    gfx.drawText(text, x + 2, y + 2)
+    
+    -- 2. Draw the White Core (2x2 thick)
+    gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
+    gfx.drawText(text, x, y)
+    gfx.drawText(text, x + 1, y)
+    gfx.drawText(text, x, y + 1)
+    gfx.drawText(text, x + 1, y + 1)
 end
 
 --- Draws persistent Heads-Up Display elements (like the Health Bar) directly to the screen.
@@ -105,7 +164,7 @@ function UIManager.drawHUD()
         gfx.fillRect(12, 12, fillWidth, 10)
     end
     
-    -- Draw the Target HUD centered underneath the top reserved row (at Y=20)
+    -- Draw the Target HUD centered underneath the top reserved row (at Y=25)
     if _G.player.currentInteractable then
         local target = _G.player.currentInteractable
         local targetName = target.targetName or target.className or "Unknown"
@@ -116,21 +175,12 @@ function UIManager.drawHUD()
             text = text .. " (HP: " .. target.health .. ")"
         end
         
-        -- Measure text width to draw a nice background box
+        -- Measure text width to center it
         local textWidth = gfx.getTextSize(text)
-        local boxWidth = textWidth + 16
-        local boxHeight = 20
-        local x = 200 - (boxWidth / 2)
-        local y = 20
+        local x = 200 - (textWidth / 2)
+        local y = 25
         
-        gfx.setColor(gfx.kColorBlack)
-        gfx.fillRoundRect(x, y, boxWidth, boxHeight, 4)
-        
-        gfx.setColor(gfx.kColorWhite)
-        gfx.setLineWidth(2)
-        gfx.drawRoundRect(x + 1, y + 1, boxWidth - 2, boxHeight - 2, 4)
-        
-        gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
-        gfx.drawText(text, x + 8, y + 3)
+        -- Draw the target name using our new transparent, thick text style!
+        UIManager.drawThickOutlinedText(text, x, y)
     end
 end
