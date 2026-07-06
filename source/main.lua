@@ -22,7 +22,8 @@ local gfx = playdate.graphics
 gfx.setBackgroundColor(gfx.kColorWhite)
 
 -- Instantiate our world which natively parses the LDtk JSON and spawns entities
-local world = World("Room_1")
+-- By default, LDtk names the first room "Level_0" using its auto-identifier logic.
+local world = World("Level_0")
 
 --- Main game loop called by the Playdate OS every frame (typically 30 or 50 fps).
 --- This handles camera math, sprite updates, and custom interaction UI.
