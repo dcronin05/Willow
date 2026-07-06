@@ -78,8 +78,10 @@ function Player:update()
     if self.xVelocity < -self.maxSpeed then self.xVelocity = -self.maxSpeed end
     
     -- Handle Jumping
-    if pd.buttonJustPressed(pd.kButtonUp) and self.grounded then
-        self.yVelocity = self.jumpForce
+    if not UIManager.isUIActive() then
+        if pd.buttonJustPressed(pd.kButtonUp) and self.grounded then
+            self.yVelocity = self.jumpForce
+        end
     end
     
     -- State Machine for Animation
@@ -128,18 +130,28 @@ function Player:update()
     end
     
     -- Interaction Detection
-    local overlapping = self:overlappingSprites()
     self.currentInteractable = nil
     
-    for i=1, #overlapping do
-        if overlapping[i].isInteractable then
-            self.currentInteractable = overlapping[i]
-            break
+    if not UIManager.isUIActive() then
+        local visionX = self.x
+        local visionWidth = 32
+        
+        if not self.facingRight then
+            visionX = self.x - 32
         end
-    end
-    
-    -- Trigger Interaction
-    if pd.buttonJustPressed(pd.kButtonA) and self.currentInteractable then
-        self.currentInteractable:onInteract()
+        
+        local sprites = gfx.sprite.querySpritesInRect(visionX, self.y, visionWidth, 32)
+        
+        for i=1, #sprites do
+            if sprites[i].isInteractable then
+                self.currentInteractable = sprites[i]
+                break
+            end
+        end
+        
+        -- Trigger Interaction
+        if pd.buttonJustPressed(pd.kButtonA) and self.currentInteractable then
+            self.currentInteractable:onInteract()
+        end
     end
 end
