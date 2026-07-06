@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Playdate build artifacts
+*.pdx/
+*.pdz
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+
+# LDtk backups
+*.ldtk_backups/
