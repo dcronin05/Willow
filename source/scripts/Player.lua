@@ -44,9 +44,6 @@ function Player:update()
     -- Apply Gravity
     self.yVelocity = self.yVelocity + self.gravity
     
-    -- Reset grounded state every frame; collisions will turn it back on if we hit the floor
-    self.grounded = false
-    
     -- Handle D-Pad Input (Acceleration)
     if pd.buttonIsPressed(pd.kButtonLeft) then
         self.xVelocity = self.xVelocity - self.acceleration
@@ -64,13 +61,17 @@ function Player:update()
     if self.xVelocity < -self.maxSpeed then self.xVelocity = -self.maxSpeed end
     
     -- Handle Jumping (Only if grounded!)
-    if pd.buttonJustPressed(pd.kButtonA) and self.grounded then
+    if pd.buttonJustPressed(pd.kButtonUp) and self.grounded then
         self.yVelocity = self.jumpForce
     end
     
     -- Calculate where the player *wants* to go this frame
     local targetX = self.x + self.xVelocity
     local targetY = self.y + self.yVelocity
+    
+    -- Reset grounded state RIGHT BEFORE checking collisions.
+    -- (This preserves the grounded state from the previous frame for the jump check above)
+    self.grounded = false
     
     -- self:moveWithCollisions tries to move the player, but stops if it hits a wall/floor
     -- For now, since we have no walls, it will just move freely!
