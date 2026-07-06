@@ -11,6 +11,11 @@ class('World').extends()
 --- Initializes a new room by parsing the LDtk JSON and building the Playdate graphics/physics objects.
 ---@param levelName string The exact identifier of the level defined in LDtk (e.g. "Room_1")
 function World:init(levelName)
+    World.super.init(self)
+    
+    -- Purge any expired respawn timers from the save file before generating the level
+    SaveManager.cleanupRespawnedEntities()
+
     -- ==========================================
     -- 1. JSON PARSING
     -- ==========================================

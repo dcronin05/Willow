@@ -54,17 +54,20 @@ function Player:update()
     -- ==========================================
     -- 1. INPUT HANDLING
     -- ==========================================
+    
+    -- Always allow Left/Right movement, even if the menu is open!
+    if pd.buttonIsPressed(pd.kButtonLeft) then
+        self.xVelocity = self.xVelocity - self.acceleration
+        self.facingRight = false
+    elseif pd.buttonIsPressed(pd.kButtonRight) then
+        self.xVelocity = self.xVelocity + self.acceleration
+        self.facingRight = true
+    else
+        self.xVelocity = self.xVelocity * self.friction
+    end
+    
+    -- Only allow jumping and opening the menu if the UI is NOT active
     if not UIManager.isUIActive() then
-        if pd.buttonIsPressed(pd.kButtonLeft) then
-            self.xVelocity = self.xVelocity - self.acceleration
-            self.facingRight = false
-        elseif pd.buttonIsPressed(pd.kButtonRight) then
-            self.xVelocity = self.xVelocity + self.acceleration
-            self.facingRight = true
-        else
-            self.xVelocity = self.xVelocity * self.friction
-        end
-        
         if pd.buttonJustPressed(pd.kButtonUp) and self.grounded then
             self.yVelocity = self.jumpForce
         end
@@ -74,9 +77,6 @@ function Player:update()
                 UIManager.showInventory()
             end
         end
-    else
-        -- If UI is active, force the player to slide to a stop.
-        self.xVelocity = self.xVelocity * self.friction
     end
     
     self.xVelocity = math.max(-self.maxSpeed, math.min(self.maxSpeed, self.xVelocity))

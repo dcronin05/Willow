@@ -39,7 +39,48 @@ end
 --- Opens the Inventory Menu
 function UIManager.showInventory()
     if UIManager.activeUI then return end
-    UIManager.activeUI = InventoryUI()
+    
+    local playerInv = SaveManager.state.inventories["player"] or {}
+    local inventoryItems = playerInv.items or {}
+    local consumableChildren = {}
+    local equipmentChildren = {}
+    
+    for id, qty in pairs(inventoryItems) do
+        local itemDef = ItemDatabase[id]
+        if itemDef then
+            local node = {
+                title = itemDef.name,
+                qty = qty,
+                onSelect = function()
+                    if itemDef.type == "consumable" then
+                        if id == "potion" then
+                            if _G.player then
+                                local heal = itemDef.healAmount or 25
+                                _G.player.health = math.min(_G.player.maxHealth, _G.player.health + heal)
+                            end
+                            SaveManager.consumeItem("player", id, 1)
+                            
+                            -- Rebuild UI to reflect new quantities or removed items
+                            UIManager.clearUI()
+                            UIManager.showInventory()
+                        end
+                    end
+                end
+            }
+            if itemDef.type == "consumable" then
+                table.insert(consumableChildren, node)
+            else
+                table.insert(equipmentChildren, node)
+            end
+        end
+    end
+    
+    local rootMenu = {}
+    if #consumableChildren > 0 then table.insert(rootMenu, { title = "Consumables", children = consumableChildren }) end
+    if #equipmentChildren > 0 then table.insert(rootMenu, { title = "Equipment", children = equipmentChildren }) end
+    if #rootMenu == 0 then table.insert(rootMenu, { title = "Inventory Empty" }) end
+    
+    UIManager.activeUI = TreeMenu(rootMenu)
 end
 
 --- Draws persistent Heads-Up Display elements (like the Health Bar) directly to the screen.

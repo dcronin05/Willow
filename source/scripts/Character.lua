@@ -175,12 +175,13 @@ function Character:takeDamage(amount, sourceX)
 end
 
 --- Handles the death sequence. Overridden by child classes for custom behavior.
-function Character:die()
+---@param respawnDelaySecs number? Optional seconds until this character respawns.
+function Character:die(respawnDelaySecs)
     print(self.className .. " died!")
     
-    -- If this character has a unique ID, mark them as dead forever in the save file
+    -- If this character has a unique ID, mark them as dead in the save file
     if self.iid then
-        SaveManager.setEntityKilled(self.iid)
+        SaveManager.setEntityKilled(self.iid, respawnDelaySecs)
     end
     
     self:remove() -- Remove from Playdate sprite list

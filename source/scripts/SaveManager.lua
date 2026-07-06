@@ -109,11 +109,19 @@ function SaveManager.getFlag(flagName)
     return SaveManager.state.world.flags[flagName]
 end
 
---- Marks an entity as permanently killed
+--- Marks an entity as dead and optionally specifies when it should respawn
 ---@param iid string The LDtk entity identifier.
-function SaveManager.setEntityKilled(iid)
+---@param respawnDelaySecs number? Optional seconds until this entity respawns.
+function SaveManager.setEntityKilled(iid, respawnDelaySecs)
     SaveManager.state.world.entities[iid] = SaveManager.state.world.entities[iid] or {}
     SaveManager.state.world.entities[iid].dead = true
+    
+    if respawnDelaySecs then
+        SaveManager.state.world.entities[iid].respawnTime = pd.getSecondsSinceEpoch() + respawnDelaySecs
+    else
+        SaveManager.state.world.entities[iid].respawnTime = nil
+    end
+    
     SaveManager.saveGame()
 end
 
@@ -123,6 +131,27 @@ end
 function SaveManager.isEntityKilled(iid)
     if not SaveManager.state.world.entities[iid] then return false end
     return SaveManager.state.world.entities[iid].dead == true
+end
+
+--- Iterates over all entities and clears the dead flag if their respawn timer has expired.
+--- This prevents save file bloat over long playthroughs.
+function SaveManager.cleanupRespawnedEntities()
+    local currentTime = pd.getSecondsSinceEpoch()
+    local didCleanup = false
+    for iid, entityState in pairs(SaveManager.state.world.entities) do
+        if entityState.dead then
+            -- If the entity has no respawnTime, it was killed in an older version of the game.
+            -- We'll just delete it now to automatically migrate the save file.
+            if not entityState.respawnTime or currentTime >= entityState.respawnTime then
+                SaveManager.state.world.entities[iid] = nil
+                didCleanup = true
+            end
+        end
+    end
+    
+    if didCleanup then
+        SaveManager.saveGame()
+    end
 end
 
 -- ==========================================

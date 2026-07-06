@@ -76,8 +76,8 @@ function Item:onInteract()
     SaveManager.addItem("player", self.itemId, 1)
     
     -- If this item was placed via LDtk, it might have an LDtk iid instead of a normal uid
-    -- We can safely flag it as killed just in case, so LDtk doesn't respawn it.
-    SaveManager.setEntityKilled(self.uid)
+    -- We flag it as killed with a 300 second (5 min) respawn timer so the world repopulates eventually!
+    SaveManager.setEntityKilled(self.uid, 300)
     
     -- Remove from dynamic dropped items spreadsheet
     SaveManager.removeDroppedItem(self.uid)

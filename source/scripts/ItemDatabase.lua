@@ -6,9 +6,10 @@
 ItemDatabase = {
     potion = {
         name = "Health Potion",
-        description = "Restores all your health. Tastes like cherries.",
+        description = "Restores 25 health. Tastes like cherries.",
         imagePath = "images/items/potion", -- We will draw a tiny bottle for this later
         type = "consumable",
+        healAmount = 25,
         maxStack = 99
     },
     iron_sword = {

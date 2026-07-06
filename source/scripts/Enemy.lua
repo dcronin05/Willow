@@ -88,8 +88,8 @@ function Enemy:die()
     -- Spawn a potion! (x, y, itemId, uid, isDropping=true)
     Item(self.x, self.y, "potion", uid, true)
     
-    -- Call the base class die to handle cleanup and SaveManager state
-    Enemy.super.die(self)
+    -- Call the base class die to handle cleanup and SaveManager state (with a 60s respawn timer!)
+    Enemy.super.die(self, 60)
 end
 
 function Enemy:onInteract()
