@@ -49,7 +49,7 @@ function World:init()
     tilemapSprite:add()
     
     -- 6. Add solid wall collisions magically!
-    -- This tells the engine: "Look at the tilemap. Every time you see Tile ID 1, put a physical collision box there!"
-    local emptyIDs = {1}
+    -- This tells the engine: "Tile ID 2 is empty air, so turn everything else into a physical collision box!"
+    local emptyIDs = {2}
     gfx.sprite.addWallSprites(tilemap, emptyIDs)
 end
