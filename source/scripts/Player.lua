@@ -120,11 +120,15 @@ function Player:update()
     if length > 0 then
         for i=1, length do
             local collision = collisions[i]
-            if collision.normal.y < 0 then
-                self.yVelocity = 0
-                self.grounded = true
-            elseif collision.normal.y > 0 then
-                self.yVelocity = 0
+            
+            -- Only resolve physics for solid slide collisions! Overlaps (like signs) should not act as ground.
+            if collision.type == playdate.graphics.sprite.kCollisionTypeSlide then
+                if collision.normal.y < 0 then
+                    self.yVelocity = 0
+                    self.grounded = true
+                elseif collision.normal.y > 0 then
+                    self.yVelocity = 0
+                end
             end
         end
     end
