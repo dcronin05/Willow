@@ -3,19 +3,53 @@ local gfx = playdate.graphics
 class('World').extends()
 
 function World:init()
-    -- Create a solid floor sprite
-    local floor = gfx.sprite.new()
+    -- 1. Create the tilemap object
+    local tilemap = gfx.tilemap.new()
     
-    -- Make the floor span a massive 2000 pixels wide!
-    local floorImage = gfx.image.new(2000, 40, gfx.kColorBlack)
-    floor:setImage(floorImage)
+    -- 2. Load the image table we generated
+    -- Notice we don't include the "-table-16-16" suffix or the ".png" extension. The engine figures it out!
+    local imageTable = gfx.imagetable.new("images/tileset")
+    tilemap:setImageTable(imageTable)
     
-    -- Position it so the center of the 2000px floor is at X=1000
-    floor:moveTo(1000, 220)
+    -- 3. Define the width (columns) and height (rows) of our level
+    local levelWidth = 30
+    local levelHeight = 15
     
-    -- Give it a collision rect matching the image size
-    floor:setCollideRect(0, 0, floor:getSize())
+    -- 4. We define our map as a flat 1D array of tile IDs.
+    -- 0 = Empty/Transparent
+    -- 1 = Solid Ground (our black square with a white outline)
+    -- 2 = Air (our white square with a few texture dots)
+    local levelData = {
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+        2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+        1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,1,
+        1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,
+        1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+    }
     
-    -- Add it to the active sprite list
-    floor:add()
+    -- Load the array into the tilemap
+    tilemap:setTiles(levelData, levelWidth)
+    
+    -- 5. Create a Sprite to actually draw the tilemap onto the screen
+    local tilemapSprite = gfx.sprite.new()
+    tilemapSprite:setTilemap(tilemap)
+    tilemapSprite:moveTo(0, 0)
+    tilemapSprite:setCenter(0, 0) -- Important: draw from top-left, not center!
+    tilemapSprite:setZIndex(-1) -- Draw it behind the player
+    tilemapSprite:add()
+    
+    -- 6. Add solid wall collisions magically!
+    -- This tells the engine: "Look at the tilemap. Every time you see Tile ID 1, put a physical collision box there!"
+    local emptyIDs = {1}
+    gfx.sprite.addWallSprites(tilemap, emptyIDs)
 end
