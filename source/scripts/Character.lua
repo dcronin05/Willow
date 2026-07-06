@@ -91,3 +91,44 @@ function Character:takeDamage(amount, attacker)
         self:remove() -- Remove from Playdate sprite list
     end
 end
+
+--- ==========================================
+--- ANIMATION STATE MACHINE
+--- ==========================================
+--- Evaluates physical state (grounded, velocity) to determine the correct animation.
+--- Flips the sprite based on self.facingRight.
+function Character:updateAnimation()
+    -- Only evaluate animations if the child class set up a self.animations table
+    if self.animations then
+        local nextAnimation = self.currentAnimation
+        
+        -- Determine which animation should be playing based on our physical state
+        if not self.grounded and self.animations.jump then
+            nextAnimation = self.animations.jump
+        elseif math.abs(self.xVelocity) > 0.5 and self.animations.run then
+            nextAnimation = self.animations.run
+        elseif self.animations.idle then
+            nextAnimation = self.animations.idle
+        end
+        
+        -- If we switched to a new animation state this frame, reset its frame counter.
+        if nextAnimation ~= self.currentAnimation then
+            if nextAnimation.startFrame then
+                nextAnimation.frame = nextAnimation.startFrame
+            end
+            self.currentAnimation = nextAnimation
+        end
+        
+        -- Apply the current frame's image to the sprite
+        if self.currentAnimation then
+            self:setImage(self.currentAnimation:image())
+        end
+    end
+    
+    -- All characters (even static ones) should flip horizontally based on movement direction
+    if self.facingRight then
+        self:setImageFlip(gfx.kImageUnflipped)
+    else
+        self:setImageFlip(gfx.kImageFlippedX)
+    end
+end

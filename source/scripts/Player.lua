@@ -73,28 +73,8 @@ function Player:update()
     -- ==========================================
     -- 3. ANIMATION STATE MACHINE
     -- ==========================================
-    local nextAnimation = self.currentAnimation
-    
-    if not self.grounded then
-        nextAnimation = self.animations.jump
-    elseif math.abs(self.xVelocity) > 0.5 then
-        nextAnimation = self.animations.run
-    else
-        nextAnimation = self.animations.idle
-    end
-    
-    if nextAnimation ~= self.currentAnimation then
-        nextAnimation.frame = nextAnimation.startFrame
-        self.currentAnimation = nextAnimation
-    end
-    
-    self:setImage(self.currentAnimation:image())
-    
-    if self.facingRight then
-        self:setImageFlip(gfx.kImageUnflipped)
-    else
-        self:setImageFlip(gfx.kImageFlippedX)
-    end
+    -- Defers to the base Character class to evaluate grounded/velocity and swap animations
+    self:updateAnimation()
     
     -- ==========================================
     -- 4. INTERACTION DETECTION (VISION BOX)

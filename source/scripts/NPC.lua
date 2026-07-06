@@ -44,10 +44,6 @@ function NPC:update()
     -- Apply base Character physics (gravity, collisions)
     self:applyPhysics()
     
-    -- Flip the sprite horizontally based on which way we are walking
-    if self.facingRight then
-        self:setImageFlip(gfx.kImageUnflipped)
-    else
-        self:setImageFlip(gfx.kImageFlippedX)
-    end
+    -- Flip the sprite and handle any animations defined by subclasses
+    self:updateAnimation()
 end
