@@ -85,6 +85,8 @@ ldtk_data = {
                 "pxWid": 32,
                 "pxHei": 16,
                 "tileGridSize": 16,
+                "__cWid": 2,
+                "__cHei": 1,
                 "spacing": 0,
                 "padding": 0,
                 "tags": []
