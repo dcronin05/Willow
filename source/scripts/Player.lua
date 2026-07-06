@@ -92,21 +92,15 @@ function Player:update()
     -- ==========================================
     -- 1. INPUT HANDLING
     -- ==========================================
-    -- We only process D-Pad movement if a UI dialog box is NOT currently taking over the screen.
-    if not UIManager.isUIActive() then
-        if pd.buttonIsPressed(pd.kButtonLeft) then
-            self.xVelocity = self.xVelocity - self.acceleration
-            self.facingRight = false
-        elseif pd.buttonIsPressed(pd.kButtonRight) then
-            self.xVelocity = self.xVelocity + self.acceleration
-            self.facingRight = true
-        else
-            -- Apply friction when no directional buttons are pressed to slide to a stop
-            self.xVelocity = self.xVelocity * self.friction
-        end
+    if pd.buttonIsPressed(pd.kButtonLeft) then
+        self.xVelocity = self.xVelocity - self.acceleration
+        self.facingRight = false
+    elseif pd.buttonIsPressed(pd.kButtonRight) then
+        self.xVelocity = self.xVelocity + self.acceleration
+        self.facingRight = true
     else
-        -- If UI is active, immediately halt horizontal movement so we don't slide forever.
-        self.xVelocity = 0
+        -- Apply friction when no directional buttons are pressed to slide to a stop
+        self.xVelocity = self.xVelocity * self.friction
     end
     
     -- Clamp the horizontal velocity so the player doesn't exceed maxSpeed
@@ -116,11 +110,9 @@ function Player:update()
     self.yVelocity = self.yVelocity + self.gravity
     
     -- Handle Jumping
-    if not UIManager.isUIActive() then
-        -- We can only jump if the Up button was JUST pressed, and we are currently touching the ground.
-        if pd.buttonJustPressed(pd.kButtonUp) and self.grounded then
-            self.yVelocity = self.jumpForce
-        end
+    -- We can only jump if the Up button was JUST pressed, and we are currently touching the ground.
+    if pd.buttonJustPressed(pd.kButtonUp) and self.grounded then
+        self.yVelocity = self.jumpForce
     end
     
     -- ==========================================
