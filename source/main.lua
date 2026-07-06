@@ -1,56 +1,74 @@
+---@module 'main'
+--- Main entry point for the Willow game engine.
+--- Responsible for importing all core dependencies, initializing the game world,
+--- handling the main update loop, and managing camera logic.
+
+-- Import Playdate Core Libraries
 import "CoreLibs/graphics"
 import "CoreLibs/sprites"
 import "CoreLibs/object"
 
+-- Import Custom Engine Scripts
 import "scripts/World"
 import "scripts/Player"
 import "scripts/UIManager"
 import "scripts/MessageBox"
 import "scripts/Sign"
 
+-- Cache the graphics API for performance
 local gfx = playdate.graphics
 
 -- Setting the background color to white automatically clears the screen every frame for us!
 gfx.setBackgroundColor(gfx.kColorWhite)
 
--- Instantiate our world which builds the tilemaps and spawns the LDtk entities
+-- Instantiate our world which natively parses the LDtk JSON and spawns entities
 local world = World("Room_1")
 
+--- Main game loop called by the Playdate OS every frame (typically 30 or 50 fps).
+--- This handles camera math, sprite updates, and custom interaction UI.
 function playdate.update()
-    -- CAMERA LOGIC:
+    
+    -- ==========================================
+    -- CAMERA LOGIC
+    -- ==========================================
     if _G.player and world then
-        -- Target camera offset (centers the player on screen)
+        -- We calculate a target camera offset that would perfectly center the player on screen.
+        -- 200 is half the screen width (400 / 2), 120 is half the screen height (240 / 2).
         local targetX = 200 - _G.player.x
         local targetY = 120 - _G.player.y
         
-        -- Clamp to level bounds!
-        -- Minimum offset is when camera hits right/bottom edge (screen - world size)
-        -- Maximum offset is 0 (top-left edge)
+        -- We must clamp the camera so it doesn't scroll past the boundaries of the level!
+        -- If the level is 400x240, minOffsetX and minOffsetY will be 0, locking the camera in place.
         local minOffsetX = math.min(0, 400 - world.width)
         local minOffsetY = math.min(0, 240 - world.height)
         
+        -- Apply the clamp. math.min(0, targetX) ensures we never scroll past the left/top edges.
         local offsetX = math.max(minOffsetX, math.min(0, targetX))
         local offsetY = math.max(minOffsetY, math.min(0, targetY))
         
+        -- Apply the calculated offset to the Playdate graphics context
         gfx.setDrawOffset(offsetX, offsetY)
     end
 
-    -- This function tells the Playdate engine to draw all active sprites to the screen
+    -- ==========================================
+    -- UPDATE ENGINES
+    -- ==========================================
+    
+    -- This function tells the Playdate engine to process movement, animations, 
+    -- and collisions for all active sprites, and then draws them to the screen.
     gfx.sprite.update()
     
-    -- Draw subtle interaction indicator above the interactable item
+    -- ==========================================
+    -- CUSTOM RENDER OVERLAYS
+    -- ==========================================
+    
+    -- Draw a subtle interaction indicator (an inverted triangle) hovering above the interactable item
+    -- We only draw this if the player is currently within range of an interactable AND the UI isn't already active.
     if _G.player and _G.player.currentInteractable and not UIManager.isUIActive() then
+        -- Get the coordinates and dimensions of the interactable object
         local ix = _G.player.currentInteractable.x
         local iy = _G.player.currentInteractable.y
         local _, _, width, height = _G.player.currentInteractable:getBounds()
         
-        -- Because the sign is anchored at (0.5, 1.0), 'iy' is its bottom coordinate.
-        -- We calculate its top coordinate to draw the indicator just above it.
-        local topY = iy - height - 6
-        
-        -- Draw a small inverted triangle
-        gfx.drawLine(ix - 2, topY, ix + 2, topY)
-        gfx.drawLine(ix - 1, topY + 1, ix + 1, topY + 1)
-        gfx.drawPixel(ix, topY + 2)
     end
 end

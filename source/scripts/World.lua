@@ -1,78 +1,123 @@
+---@class World
+--- The World class handles decoding the level data from the LDtk JSON map,
+--- constructing the visual tilemaps, generating collision bounds for the physics engine,
+--- and spawning all entities (Player, Signs, Items) into the Playdate environment.
+
 local pd = playdate
 local gfx = pd.graphics
 
 class('World').extends()
 
+--- Initializes a new room by parsing the LDtk JSON and building the Playdate graphics/physics objects.
+---@param levelName string The exact identifier of the level defined in LDtk (e.g. "Room_1")
 function World:init(levelName)
-    -- Natively parse the LDtk JSON file!
+    -- ==========================================
+    -- 1. JSON PARSING
+    -- ==========================================
+    -- Natively parse the entire LDtk JSON file into a Lua table using Playdate's built in decoder.
     local ldtkData = json.decodeFile("levels/world.ldtk")
     local levelData = nil
     
-    -- Find our specific room
+    -- Iterate through the array of levels in the JSON to find the one matching our levelName.
     for _, level in ipairs(ldtkData.levels) do
         if level.identifier == levelName then
             levelData = level
+            -- Expose the width and height of the room so that the camera script in main.lua can clamp itself.
             self.width = level.pxWid
             self.height = level.pxHei
             break
         end
     end
     
+    -- If the requested level name isn't found in the JSON, abort safely to prevent a crash.
     if not levelData then print("Error: Level not found") return end
     
+    -- ==========================================
+    -- 2. TILEMAP INITIALIZATION
+    -- ==========================================
+    -- Create a new empty tilemap object which will hold all the 16x16 visual map tiles.
     local tilemap = gfx.tilemap.new()
+    -- Load the sprite sheet containing our tile graphics (wall, floor, empty space).
     local imageTable = gfx.imagetable.new("images/tileset")
+    
+    -- Attach the sprite sheet to the tilemap and specify its size in GRID units (not pixels).
+    -- Since the screen is 400x240 and our tiles are 16x16, the grid size is 25x15.
     tilemap:setImageTable(imageTable)
     tilemap:setSize(25, 15)
 
-    -- Extract layers
+    -- ==========================================
+    -- 3. LAYER PROCESSING
+    -- ==========================================
+    -- LDtk organizes maps into layers (e.g. Collisions, Background, Entities).
+    -- We loop through the instances of these layers to parse their specific data.
     for _, layer in ipairs(levelData.layerInstances) do
         
-        -- 1. BUILD COLLISIONS FROM INTGRID
+        -- ------------------------------------------
+        -- LAYER: COLLISIONS (IntGrid)
+        -- ------------------------------------------
         if layer.__identifier == "Collisions" then
+            -- IntGrid layers contain a 1D CSV array of integer values representing the tiles (e.g. 0=Empty, 1=Wall).
             local grid = layer.intGridCsv
             
-            -- LDtk IntGrid values map 1-to-1 with our array!
-            -- We iterate through the LDtk CSV and populate our Playdate tilemap
+            -- We iterate through every value in the 1D LDtk CSV and populate our 2D Playdate tilemap.
             for i = 1, #grid do
-                -- Playdate is 1-indexed, LDtk 1D arrays are 0-indexed math
-                -- Wait, lua loops are 1-indexed. We calculate x,y:
+                -- Convert the 1D index `i` into 2D X and Y coordinates.
+                -- Note: Lua arrays are 1-indexed, so we subtract 1 before doing the modulo/division math.
                 local x = ((i - 1) % 25) + 1
                 local y = math.floor((i - 1) / 25) + 1
                 
-                -- LDtk IntGrid value 0 means empty. Value 1 means Wall.
-                -- In our tileset.png, Tile 1 is the Wall, Tile 2 is Air.
+                -- In LDtk: IntGrid value `0` means empty space. Value `1` means a Wall block.
+                -- In our Playdate tileset.png: Tile `1` is the solid Wall graphic, Tile `2` is transparent air.
                 local tileID = grid[i] == 1 and 1 or 2
+                
+                -- Place the correct tile graphic onto the tilemap at this grid coordinate.
                 tilemap:setTileAtPosition(x, y, tileID)
             end
             
+            -- In Playdate, tilemaps must be attached to a Sprite in order to be drawn to the screen automatically.
             local tilemapSprite = gfx.sprite.new()
             tilemapSprite:setTilemap(tilemap)
+            
+            -- Ensure the tilemap sprite's top-left corner perfectly aligns with the screen's top-left (0, 0).
             tilemapSprite:moveTo(0, 0)
             tilemapSprite:setCenter(0, 0)
+            
+            -- Draw the background layer behind everything else so entities render on top of it.
             tilemapSprite:setZIndex(-1)
             tilemapSprite:add()
             
-            -- Solid wall collisions: Tell Playdate that tile ID 2 is empty!
+            -- Finally, generate solid physics bounding boxes!
+            -- We tell Playdate to generate solid walls for EVERY tile in the tilemap, EXCEPT for the tile IDs listed in the table.
+            -- Since Tile 2 is "transparent air", we pass `{2}` to tell Playdate it has no collision.
             gfx.sprite.addWallSprites(tilemap, {2})
             
-        -- 2. SPAWN ENTITIES
+        -- ------------------------------------------
+        -- LAYER: ENTITIES (Player, Signs)
+        -- ------------------------------------------
         elseif layer.__identifier == "Entities" then
+            -- Loop over every entity placed into this room via the LDtk editor.
             for _, entity in ipairs(layer.entityInstances) do
+                -- Grab the raw pixel coordinates defining where the entity was placed.
                 local pxX = entity.px[1]
                 local pxY = entity.px[2]
                 
+                -- Check the string identifier of the entity to figure out which Lua class to instantiate.
                 if entity.__identifier == "Player" then
+                    -- Spawn the player and assign it to a global variable so the camera and UI can reference it.
                     _G.player = Player(pxX, pxY)
                     
                 elseif entity.__identifier == "Sign" then
+                    -- Signs can have custom text attached to them in LDtk using "Custom Fields".
                     local text = "..."
+                    -- Search the entity's fieldInstances for the field named "text".
                     for _, field in ipairs(entity.fieldInstances) do
                         if field.__identifier == "text" then
                             text = field.__value
                         end
                     end
-                    -- Adjust for sign anchoring
+                    -- Instantiate the sign! 
+                    -- Note: LDtk gives us the top-left coordinates (pxX, pxY), but our Sign Lua class anchors to the bottom-center.
+                    -- So we shift the spawn point by +8 (half width) and +16 (full height) to perfectly align it with LDtk's grid.
                     Sign(pxX + 8, pxY + 16, text)
                 end
             end
