@@ -62,36 +62,49 @@ function UIManager.showInventory()
         if itemDef then
             
             -- Create a 'Node' representing this specific item in the menu list.
-            local node = {
-                title = itemDef.name,
-                qty = qty,
-                
-                -- This function is triggered dynamically by TreeMenu.lua when the player presses 'A' on this item
-                onSelect = function()
-                    -- LOGIC: Consumable Items
-                    if itemDef.type == "consumable" then
-                        
-                        -- Specific logic for health potions
-                        if id == "potion" then
-                            if _G.player then
-                                -- Read the healAmount from the DB, defaulting to 25 if missing
-                                local heal = itemDef.healAmount or 25
-                                -- Add health, but clamp it using math.min so we never exceed maxHealth
-                                _G.player.health = math.min(_G.player.maxHealth, _G.player.health + heal)
-                            end
-                            
-                            -- Tell the SaveManager to remove 1 potion from the inventory and save to disk
-                            SaveManager.consumeItem("player", id, 1)
-                            
-                            -- Since we just consumed an item, the quantity displayed on screen is now wrong!
-                            -- If we hit 0, the item shouldn't even be in the list anymore.
-                            -- To fix this quickly, we simply close and instantly reopen the menu to force a full rebuild.
-                            UIManager.clearUI()
-                            UIManager.showInventory()
+            -- We must declare the table first so the closure inside can reference it!
+            local node = {}
+            node.title = itemDef.name
+            node.qty = qty
+            
+            -- This function is triggered dynamically by TreeMenu.lua when the player presses 'A' on this item
+            node.onSelect = function(activeMenu)
+                -- LOGIC: Consumable Items
+                if itemDef.type == "consumable" then
+                    
+                    -- Specific logic for health potions
+                    if id == "potion" then
+                        if _G.player then
+                            -- Read the healAmount from the DB, defaulting to 25 if missing
+                            local heal = itemDef.healAmount or 25
+                            -- Add health, but clamp it using math.min so we never exceed maxHealth
+                            _G.player.health = math.min(_G.player.maxHealth, _G.player.health + heal)
                         end
+                        
+                        -- Tell the SaveManager to remove 1 potion from the inventory and save to disk
+                        SaveManager.consumeItem("player", id, 1)
+                        
+                        -- In-place UI update so the user isn't kicked out of the menu!
+                        -- We manually decrement the quantity on this specific UI node
+                        -- activeMenu is the TreeMenu instance passed in by the TreeMenu script when called
+                        node.qty = node.qty - 1
+                        if node.qty <= 0 then
+                            -- The item is gone! Remove it from the current list array
+                            table.remove(activeMenu.currentData, activeMenu.selectedIndex)
+                            
+                            -- Clamp the cursor so it doesn't point out of bounds
+                            activeMenu.selectedIndex = math.max(1, math.min(activeMenu.selectedIndex, #activeMenu.currentData))
+                            
+                            -- Note: We no longer auto-pop the user back up the menu tree when it empties.
+                            -- Because categories are now permanent, the TreeMenu will simply render "*Empty*",
+                            -- and the user can manually press B to go back when they are finished.
+                        end
+                        
+                        -- Force the TreeMenu to redraw the screen with the new quantities
+                        activeMenu:drawUI()
                     end
                 end
-            }
+            end
             
             -- Sort the dynamically generated node into the correct category table based on its type
             if itemDef.type == "consumable" then
@@ -106,14 +119,13 @@ function UIManager.showInventory()
     end
     
     -- Now that we have grouped all items, we build the "Root" of the tree menu.
-    -- We only insert a category if it actually has items inside it (so we don't show an empty "Equipment" folder).
-    local rootMenu = {}
-    if #currencyChildren > 0 then table.insert(rootMenu, { title = "Currency", children = currencyChildren }) end
-    if #consumableChildren > 0 then table.insert(rootMenu, { title = "Consumables", children = consumableChildren }) end
-    if #equipmentChildren > 0 then table.insert(rootMenu, { title = "Equipment", children = equipmentChildren }) end
-    
-    -- If they have literally nothing, show a placeholder node so the menu isn't completely blank
-    if #rootMenu == 0 then table.insert(rootMenu, { title = "Inventory Empty" }) end
+    -- We always display the core categories so the UI layout is consistent and predictable.
+    -- If a player selects an empty category, the TreeMenu will automatically display "*Empty*".
+    local rootMenu = {
+        { title = "Currency", children = currencyChildren },
+        { title = "Consumables", children = consumableChildren },
+        { title = "Equipment", children = equipmentChildren }
+    }
     
     -- Instantiate our generic TreeMenu class, passing it our dynamically built hierarchical data!
     UIManager.activeUI = TreeMenu(rootMenu)

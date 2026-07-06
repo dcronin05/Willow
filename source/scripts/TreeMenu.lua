@@ -46,7 +46,7 @@ function TreeMenu:drawUI()
         local fixedCursorY = 100 -- The cursor is permanently locked to this Y coordinate
         
         if #self.currentData == 0 then
-            drawThickOutlinedText("*Empty*", 25, fixedCursorY)
+            UIManager.drawThickOutlinedText("*Empty*", 25, fixedCursorY)
         else
             -- We iterate through every item, but only draw the ones that fit on screen!
             for i = 1, #self.currentData do
@@ -109,11 +109,11 @@ function TreeMenu:update()
             self:drawUI()
             
         elseif selectedItem.onSelect then
-            -- Execute the action!
-            selectedItem.onSelect()
-            -- Actions might consume an item, so they should tell UIManager to rebuild the tree if needed,
-            -- or we just redraw what we have for now.
-            self:drawUI()
+            -- Execute the action, passing the TreeMenu instance so the callback can modify the menu in-place!
+            selectedItem.onSelect(self)
+            
+            -- We do NOT call self:drawUI() here anymore. The callback is responsible for calling it,
+            -- because the callback might have destroyed the menu entirely (e.g. popping the stack).
         end
         
     elseif pd.buttonJustPressed(pd.kButtonB) then
