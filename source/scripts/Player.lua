@@ -50,8 +50,9 @@ function Player:init(x, y)
     self:moveTo(x, y)
     
     -- Define the physical bounding box for collisions. 
-    -- We use the full size of a single sprite frame (16x32).
-    self:setCollideRect(0, 0, 16, 32)
+    -- We make the collision box 28 pixels tall (instead of the full 32 visual pixels).
+    -- This allows the bottom 4 pixels of the player's feet to overlap "into" the ground tiles!
+    self:setCollideRect(0, 0, 16, 28)
     
     -- Set the Z-Index to 10 so the player is always drawn on top of background interactables (which default to 0).
     self:setZIndex(10)
