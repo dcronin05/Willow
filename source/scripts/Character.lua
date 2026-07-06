@@ -107,9 +107,14 @@ function Character:takeDamage(amount, sourceX)
     end)
     
     if self.health <= 0 then
-        print(self.className .. " died!")
-        self:remove() -- Remove from Playdate sprite list
+        self:die()
     end
+end
+
+--- Handles the death sequence. Overridden by child classes for custom behavior.
+function Character:die()
+    print(self.className .. " died!")
+    self:remove() -- Remove from Playdate sprite list
 end
 
 --- ==========================================

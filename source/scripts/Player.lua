@@ -18,6 +18,10 @@ function Player:init(x, y)
     -- Initialize the base Character class (handles coordinates, faction, and physics setup)
     Player.super.init(self, x, y, "player")
     
+    -- Save our spawn point for respawning on death
+    self.spawnX = x
+    self.spawnY = y
+    
     -- ==========================================
     -- ANIMATION SETUP
     -- ==========================================
@@ -73,9 +77,9 @@ function Player:update()
     -- ==========================================
     -- 3. ANIMATION STATE MACHINE
     -- ==========================================
-    -- Defers to the base Character class to evaluate grounded/velocity and swap animations
-    self:updateAnimation()
     
+    -- Allow the base Character to evaluate physics and update the current animation frame
+    Player.super.updateAnimation(self)
     -- ==========================================
     -- 4. INTERACTION DETECTION (VISION BOX)
     -- ==========================================
@@ -111,4 +115,24 @@ function Player:update()
             end
         end
     end
+end
+
+--- Overrides the base Character death to respawn the player instantly.
+function Player:die()
+    print("Player died! Respawning at " .. self.spawnX .. ", " .. self.spawnY)
+    
+    -- Reset health and velocity
+    self.health = self.maxHealth
+    self.xVelocity = 0
+    self.yVelocity = 0
+    
+    -- Move back to spawn
+    self:moveTo(self.spawnX, self.spawnY)
+    
+    -- Give a generous invincibility window so they don't get spawn camped
+    self.invincible = true
+    pd.timer.performAfterDelay(2000, function()
+        self.invincible = false
+        self:setVisible(true)
+    end)
 end
