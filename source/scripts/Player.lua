@@ -29,6 +29,12 @@ function Player:init(x, y)
     self.runSpeed = 4
 end
 
+function Player:collisionResponse(other)
+    -- This tells the physics engine that when we hit something solid (like the floor),
+    -- we should slide along it rather than bouncing or stopping completely.
+    return gfx.sprite.kCollisionTypeSlide
+end
+
 function Player:update()
     -- Apply Gravity to our vertical velocity every frame
     self.yVelocity = self.yVelocity + self.gravity
@@ -64,12 +70,5 @@ function Player:update()
                 self.yVelocity = 0
             end
         end
-    end
-    
-    -- Quick hack to keep the player from falling off the bottom of the screen
-    -- (We will remove this when we add a real floor in Step 3!)
-    if actualY > 200 then
-        self:moveTo(actualX, 200)
-        self.yVelocity = 0
     end
 end
