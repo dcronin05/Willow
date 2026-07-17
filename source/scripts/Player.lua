@@ -56,14 +56,19 @@ function Player:update()
     -- ==========================================
     
     -- Always allow Left/Right movement, even if the menu is open!
-    if pd.buttonIsPressed(pd.kButtonLeft) then
-        self.xVelocity = self.xVelocity - self.acceleration
-        self.facingRight = false
-    elseif pd.buttonIsPressed(pd.kButtonRight) then
-        self.xVelocity = self.xVelocity + self.acceleration
-        self.facingRight = true
-    else
+    -- UNLESS a fullscreen UI is open (like the Map)
+    if UIManager.activeUI and UIManager.activeUI.isFullScreen then
         self.xVelocity = self.xVelocity * self.friction
+    else
+        if pd.buttonIsPressed(pd.kButtonLeft) then
+            self.xVelocity = self.xVelocity - self.acceleration
+            self.facingRight = false
+        elseif pd.buttonIsPressed(pd.kButtonRight) then
+            self.xVelocity = self.xVelocity + self.acceleration
+            self.facingRight = true
+        else
+            self.xVelocity = self.xVelocity * self.friction
+        end
     end
     
     -- Only allow jumping and opening the menu if the UI is NOT active

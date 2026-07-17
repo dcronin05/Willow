@@ -148,9 +148,13 @@ function UIManager.showInventory()
     -- We always display the core categories so the UI layout is consistent and predictable.
     -- If a player selects an empty category, the TreeMenu will automatically display "*Empty*".
     local rootMenu = {
-        { title = "Currency", children = currencyChildren },
+        { title = "World Map", addSeparator = true, onSelect = function(activeMenu)
+            UIManager.clearUI()
+            UIManager.activeUI = MapUI()
+        end },
+        { title = "Equipment", children = equipmentChildren },
         { title = "Consumables", children = consumableChildren },
-        { title = "Equipment", children = equipmentChildren }
+        { title = "Currency", children = currencyChildren }
     }
     
     -- Instantiate our generic TreeMenu class, passing it our dynamically built hierarchical data!

@@ -42,7 +42,7 @@ function TreeMenu:drawUI()
         -- =========================================================================
         -- TRUE FIXED-CURSOR SCROLLING
         -- =========================================================================
-        local itemHeight = 22
+        local itemHeight = 26
         local fixedCursorY = 100 -- The cursor is permanently locked to this Y coordinate
         
         if #self.currentData == 0 then
@@ -71,6 +71,14 @@ function TreeMenu:drawUI()
                     end
                     
                     UIManager.drawThickOutlinedText(text, 24, yPos)
+                    
+                    -- Draw a subtle dotted separator line below THIS specific item if requested
+                    if item.addSeparator then
+                        gfx.setColor(gfx.kColorBlack)
+                        -- A simple repeating dashed pattern
+                        gfx.setPattern({ 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA })
+                        gfx.drawLine(24, yPos + 22, 180, yPos + 22)
+                    end
                 end
             end
         end
